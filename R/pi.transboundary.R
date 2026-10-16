@@ -1,3 +1,24 @@
+#' Transboundary Protection
+#'
+#' @param ll A character vector containing file paths of raster files (e.g., spatial prioritization outputs) in '.tif' format.
+#' @param puid A SpatRaster layer with planning units
+#' @param all.pa A SpatRaster layer with all existing protected areas
+#' @param st.pa A SpatRaster layer with all existing strict protected areas
+#' @param n2k A SpatRaster layer with all existing Natura 2000 protected areas (or any other unique subset of PAs)
+#' @param countries An sf vector layer containing individual countries
+#' @param bioregion An sf vector layer containing individual biogeographic regions
+#' @param tb.buffers An sf vector layer containing a transboundary region
+#' @param project.name A character vector specifying the name of your project
+#' @param version A character vector specifying the version (e.g., date) of your workflow
+#'
+#' @returns A formatted .csv file saved to the "performance_outputs/version" directory
+#' @export
+#'
+#' @examples
+#' pi.transboundary(ll = "C:/.../solution_file.tif", puid, all.pa, st.pa, n2k, countries,
+#'                   bioregion, tb.buffers, project.name = "Example Project",
+#'                   version = "Version 1")
+
 pi.transboundary <- function(ll, puid, all.pa, st.pa, n2k, countries, bioregion, tb.buffers, project.name, version){
 
   ee <- ll %>% rast() %>% extend(puid)

@@ -17,9 +17,6 @@
 #' @param bioregion.sub2 TBD
 #' @param outdir Output directory
 #'
-#' @importFrom magrittr %>%
-#' @importFrom terra values
-#'
 #' @returns A formatted .csv file saved to the "performance_outputs/version" directory
 #' @export
 #'

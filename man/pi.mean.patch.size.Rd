@@ -45,7 +45,7 @@ A formatted .csv file saved to the "performance_outputs/version" directory
 Mean/Median Patch Size
 }
 \examples{
-pi.mean.patch.size(ll, puid, all.pa, st.pa, n2k, countries, bioregion,
+pi.mean.patch.size(ll = "C:/.../solution_file.tif", puid, all.pa, st.pa, n2k, countries, bioregion,
                     threshold = 0.5, project.name = "Example Project",
                     version = "Version 1")
 }

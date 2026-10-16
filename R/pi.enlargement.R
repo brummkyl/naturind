@@ -33,8 +33,8 @@ pi.enlargement <- function(ll, puid, all.pa, st.pa, n2k, variants,
     plot(manh_sr)
 
     # align CRS with that of planning units
-    crs(manh_sr) <- crs(puid)
-    assertthat::assert_that(crs(puid) == crs(manh_sr))
+    terra::crs(manh_sr) <- terra::crs(puid)
+    assertthat::assert_that(terra::crs(puid) == terra::crs(manh_sr))
     #ofname <- paste0(path_input, "QueenDistances_allPA_",grain,".tif")
     #writeRaster(manh_sr, ofname, overwrite=T)
     mh.all <- manh_sr
@@ -68,8 +68,8 @@ pi.enlargement <- function(ll, puid, all.pa, st.pa, n2k, variants,
     plot(manh_sr)
 
     # align CRS with that of planning units
-    crs(manh_sr) <- crs(puid)
-    assertthat::assert_that(crs(puid) == crs(manh_sr))
+    terra::crs(manh_sr) <- terra::crs(puid)
+    assertthat::assert_that(terra::crs(puid) == terra::crs(manh_sr))
     #ofname <- paste0(path_input, "QueenDistances_N2K_",grain,".tif")
     #writeRaster(manh_sr, ofname, overwrite=T)
     mh.n2k <- manh_sr
@@ -103,8 +103,8 @@ pi.enlargement <- function(ll, puid, all.pa, st.pa, n2k, variants,
     plot(manh_sr)
 
     # align CRS with that of planning units
-    crs(manh_sr) <- crs(puid)
-    assertthat::assert_that(crs(puid) == crs(manh_sr))
+    terra::crs(manh_sr) <- terra::crs(puid)
+    assertthat::assert_that(terra::crs(puid) == terra::crs(manh_sr))
     #ofname <- paste0(path_input, "QueenDistances_Strict_all_",grain,".tif")
     #writeRaster(manh_sr, ofname, overwrite=T)
     #mh.strict.all <- manh_sr

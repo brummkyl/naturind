@@ -11,16 +11,11 @@
 #' @param project.name A character vector specifying the name of your project
 #' @param version A character vector specifying the version (e.g., date) of your workflow
 #'
-#' @importFrom terra ifel
-#' @importFrom terra patches
-#' @importFrom terra expanse
-#' @importFrom stats median
-#'
 #' @returns A formatted .csv file saved to the "performance_outputs/version" directory
 #' @export
 #'
 #' @examples
-#' pi.mean.patch.size(ll, puid, all.pa, st.pa, n2k, countries, bioregion,
+#' pi.mean.patch.size(ll = "C:/.../solution_file.tif", puid, all.pa, st.pa, n2k, countries, bioregion,
 #'                     threshold = 0.5, project.name = "Example Project",
 #'                     version = "Version 1")
 

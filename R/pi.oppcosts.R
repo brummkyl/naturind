@@ -1,3 +1,19 @@
+#' Opportunity Costs
+#'
+#' @param ll A character vector containing file paths of raster files (e.g., spatial prioritization outputs) in '.tif' format.
+#' @param puid A SpatRaster layer with planning units
+#' @param countries An sf vector layer containing individual countries
+#' @param bioregion An sf vector layer containing individual biogeographic regions
+#' @param project.name A character vector specifying the name of your project
+#' @param version A character vector specifying the version (e.g., date) of your workflow
+#'
+#' @returns A formatted .csv file saved to the "performance_outputs/version" directory
+#' @export
+#'
+#' @examples
+#' pi.oppcosts(ll = "C:/.../solution_file.tif", puid, countries, bioregion,
+#'              project.name = "Example Project", version = "Version 1")
+
 pi.oppcosts <- function(ll, puid, countries, bioregion, project.name, version){
 
   #strict <- st.pa
