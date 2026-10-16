@@ -15,7 +15,7 @@
 #' @export
 #'
 #' @examples
-#' pi.irreplaceability(ll.full.restor, puid, all.pa, st.pa, n2k, countries,
+#' pi.irreplaceability(ll = "C:/.../solution_file.tif", puid, all.pa, st.pa, n2k, countries,
 #'                      bioregion, beta.irr, project.name = "Example Project",
 #'                      version = "Version 1")
 

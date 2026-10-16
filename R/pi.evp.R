@@ -1,3 +1,30 @@
+#' Evolutionary Potential
+#'
+#' @param ll A character vector containing file paths of raster files (e.g., spatial prioritization outputs) in '.tif' format.
+#' @param puid A SpatRaster layer with planning units
+#' @param puid.num TBD
+#' @param countries TBD
+#' @param all.pa A SpatRaster layer with all existing protected areas
+#' @param st.pa A SpatRaster layer with all existing strict protected areas
+#' @param n2k A SpatRaster layer with all existing Natura 2000 protected areas (or any other unique subset of PAs)
+#' @param feat.info A dataframe containing attributes for each feature. Useful for sub-setting e.g., species, habitats.
+#' @param rij TBD
+#' @param project.name A character vector specifying the name of your project
+#' @param version A character vector specifying the version (e.g., date) of your workflow
+#' @param countries.sub TBD
+#' @param countries.sub2 TBD
+#' @param bioregion.sub TBD
+#' @param bioregion.sub2 TBD
+#'
+#' @returns A formatted .csv file saved to the "performance_outputs/version" directory
+#' @export
+#'
+#' @examples
+#' pi.evp(ll = "C:/.../solution_file.tif", puid, puid.num, countries,
+#'         all.pa, st.pa, n2k, feat.info, rij, project.name = "Example Project",
+#'         version = "Version 1", countries.sub, countries.sub2,
+#'         bioregion.sub, bioregion.sub2)
+
 pi.evp <- function(ll, puid, puid.num, countries, all.pa, st.pa, n2k, feat.info = p, rij = y, project.name, version,
                    countries.sub, countries.sub2, bioregion.sub, bioregion.sub2){
 
