@@ -1,5 +1,36 @@
+#' Mean Target Achievement
+#'
+#' @param ll A character vector containing file paths of raster files (e.g., spatial prioritization outputs) in '.tif' format.
+#' @param puid A SpatRaster layer with planning units
+#' @param puid.num TBD
+#' @param countries TBD
+#' @param all.pa A SpatRaster layer with all existing protected areas
+#' @param st.pa A SpatRaster layer with all existing strict protected areas
+#' @param n2k A SpatRaster layer with all existing Natura 2000 protected areas (or any other unique subset of PAs)
+#' @param feat.info A dataframe containing attributes for each feature. Useful for sub-setting e.g., species, habitats.
+#' @param rij TBD
+#' @param project.name A character vector specifying the name of your project
+#' @param version A character vector specifying the version (e.g., date) of your workflow
+#' @param countries.sub TBD
+#' @param countries.sub2 TBD
+#' @param bioregion.sub TBD
+#' @param bioregion.sub2 TBD
+#' @param outdir Output directory
+#'
+#' @importFrom magrittr %>%
+#' @importFrom terra values
+#'
+#' @returns A formatted .csv file saved to the "performance_outputs/version" directory
+#' @export
+#'
+#' @examples
+#' pi.mta(ll = "C:/.../solution_file.tif", puid, puid.num, countries, all.pa,
+#'         st.pa, n2k, feat.info, rij, project.name = "Example Project",
+#'         version = "Version 1", countries.sub, countries.sub2,
+#'         bioregion.sub, bioregion.sub2, outdir)
+
 pi.mta <- function(ll, puid, puid.num, countries, all.pa, st.pa, n2k, feat.info = p, rij = y, project.name, version,
-                   countries.sub, countries.sub2, bioregion.sub, bioregion.sub2){
+                   countries.sub, countries.sub2, bioregion.sub, bioregion.sub2, outdir){
 
   # Deep-copy every terra object you might mutate, before doing anything else
   puid      <- terra::deepcopy(puid)
@@ -11,7 +42,7 @@ pi.mta <- function(ll, puid, puid.num, countries, all.pa, st.pa, n2k, feat.info 
   p <- feat.info
   y <- rij
 
-  ee <- ll %>% rast() %>% extend(puid) #%>% mask(countries)
+  ee <- ll %>% terra::rast() %>% terra::extend(puid) #%>% mask(countries)
   existing_pa_names <- c(basename(ll))
 
   ee <- c(ee, all.pa, st.pa, n2k)
@@ -20,12 +51,12 @@ pi.mta <- function(ll, puid, puid.num, countries, all.pa, st.pa, n2k, feat.info 
   # Check whether all layers already have the same NA footprint as ee[[1]]
   # This is used to adjust baseline existing PA calculations, for consistency with the provided planning solutions
   # One use case, for example, is to allow shifting between Europe and EU extents
-  reference_na <- is.na(values(ee[[1]]))
+  reference_na <- is.na(terra::values(ee[[1]]))
 
   na_match <- all(vapply(
-    seq_len(nlyr(ee)),
+    seq_len(terra::nlyr(ee)),
     function(i) {
-      identical(reference_na, is.na(values(ee[[i]])))
+      identical(reference_na, is.na(terra::values(ee[[i]])))
     },
     logical(1)
   ))
@@ -33,41 +64,41 @@ pi.mta <- function(ll, puid, puid.num, countries, all.pa, st.pa, n2k, feat.info 
   # Only mask the stack if at least one layer differs
   if (!na_match) {
     message("NA footprints differ between ee layers; masking stack to align with the first input layer...")
-    ee <- ee %>% mask(ee[[1]])
+    ee <- ee %>% terra::mask(ee[[1]])
   }
 
   #ee <- ee %>% mask(ee[[1]])
 
-  puid <- puid %>% mask(ee[[1]])
+  puid <- puid %>% terra::mask(ee[[1]])
   puid_area <- puid
 
-  puid.num <- puid.num %>% mask(puid)
+  puid.num <- puid.num %>% terra::mask(puid)
 
-  keep <- which(!is.na(values(puid)))
+  keep <- which(!is.na(terra::values(puid)))
   col_id <- which(as.numeric(colnames(y)) %in% keep)
   y <- y[, col_id, drop=FALSE]
 
   # TODO: add trycatch, if this fails, reverse and mask based on y columns
   tryCatch({
-    assertthat::assert_that(ncol(y) == sum(!is.na(values(puid_area))))
+    assertthat::assert_that(ncol(y) == sum(!is.na(terra::values(puid_area))))
   }, error = function(e) {
     message("First assertion failed, reconciling puid/raster layers with the rij subset: ", conditionMessage(e))
 
     keep <- as.character(colnames(y))
-    keep.cells <- which(!is.na(values(puid.num)) & as.character(values(puid.num)) %in% keep)
+    keep.cells <- which(!is.na(values(puid.num)) & as.character(terra::values(puid.num)) %in% keep)
 
-    condition <- setdiff(1:ncell(puid.num), keep.cells)
+    condition <- setdiff(1:terra::ncell(puid.num), keep.cells)
 
     puid.num[condition] <<- NA
     puid[condition] <<- NA
     puid_area[condition] <<- NA
-    assertthat::assert_that(sum(!is.na(values(puid.num))) == sum(!is.na(values(puid_area))))
-    assertthat::assert_that(ncol(y) == sum(!is.na(values(puid_area))))
+    assertthat::assert_that(sum(!is.na(terra::values(puid.num))) == sum(!is.na(terra::values(puid_area))))
+    assertthat::assert_that(ncol(y) == sum(!is.na(terra::values(puid_area))))
 
-    for(i in 1:nlyr(ee)){
+    for(i in 1:terra::nlyr(ee)){
       ee[[i]][condition] <<- NA
-      assertthat::assert_that(sum(!is.na(values(ee[[i]]))) == sum(!is.na(values(puid_area))))
-      assertthat::assert_that(sum(!is.na(values(ee[[i]]))) == sum(!is.na(values(ee[[1]]))))
+      assertthat::assert_that(sum(!is.na(terra::values(ee[[i]]))) == sum(!is.na(terra::values(puid_area))))
+      assertthat::assert_that(sum(!is.na(terra::values(ee[[i]]))) == sum(!is.na(terra::values(ee[[1]]))))
       gc()
     }
   })
@@ -84,12 +115,12 @@ pi.mta <- function(ll, puid, puid.num, countries, all.pa, st.pa, n2k, feat.info 
   bi.ov.mta.out.existing <- data.frame()
   co.mta.out.existing <- data.frame()
   bi.mta.out.existing <- data.frame()
-  pb <- progress::progress_bar$new(total = nlyr(ee) * 2) # Here we multiply by the total length of h specified in the first loop below
+  pb <- progress::progress_bar$new(total = terra::nlyr(ee) * 2) # Here we multiply by the total length of h specified in the first loop below
 
-  tic()
+  tictoc::tic()
   for(h in c("species", "habitats")){
 
-    for(i in 1:nlyr(ee)) {
+    for(i in 1:terra::nlyr(ee)) {
       pb$tick()
       pa.sol <- ee[[i]]
       #pa.sol <- pa.sol %>% mask(puid)
@@ -129,7 +160,7 @@ pi.mta <- function(ll, puid, puid.num, countries, all.pa, st.pa, n2k, feat.info 
 
       # Account for proportional solutions by multiplying feature/PU by proportion of PU selected
       # Result is interpreted as the amount of each feature represented per PU
-      D <- Diagonal(x = mat_prop)
+      D <- Matrix::Diagonal(x = mat_prop)
       rij_sel <- rij2 %*% D
       rownames(rij_sel) <- rownames(rij2)
       colnames(rij_sel) <- colnames(rij2)
@@ -168,7 +199,7 @@ pi.mta <- function(ll, puid, puid.num, countries, all.pa, st.pa, n2k, feat.info 
 
       # Countries
       for (j in 1:nrow(countries.sub)) {
-        co.pu <- countries.sub2 %>% filter(names == countries.sub$names[j])
+        co.pu <- countries.sub2 %>% dplyr::filter(names == countries.sub$names[j])
 
         if(nrow(co.pu) == 0){
           co.mta <- NA
@@ -242,14 +273,14 @@ pi.mta <- function(ll, puid, puid.num, countries, all.pa, st.pa, n2k, feat.info 
         ofname <- paste0(outdir, "/", "MTA/", project.name,"__", version, "__",paste0(file.name, "__indicator_MTA_",h,"_Country_Contribution_Percentages.csv"))
       }
 
-      write.csv(co.ov.mta.out.existing, ofname, row.names = FALSE)
+      utils::write.csv(co.ov.mta.out.existing, ofname, row.names = FALSE)
       co.ov.mta.out.existing <- data.frame()
 
       gc()
 
       # Bioregions
       for (k in 1:nrow(bioregion.sub)) {
-        bi.pu <- bioregion.sub2 %>% filter(names == bioregion.sub$names[k])
+        bi.pu <- bioregion.sub2 %>% dplyr::filter(names == bioregion.sub$names[k])
 
         if(nrow(bi.pu) == 0){
           bi.mta <- NA
@@ -319,14 +350,14 @@ pi.mta <- function(ll, puid, puid.num, countries, all.pa, st.pa, n2k, feat.info 
         ofname <- paste0(outdir, "/", "MTA/", project.name,"__", version, "__", paste0(file.name, "__indicator_MTA_",h,"_Bioregion_Contribution_Percentages.csv"))
       }
 
-      write.csv(bi.ov.mta.out.existing, ofname, row.names = FALSE)
+      utils::write.csv(bi.ov.mta.out.existing, ofname, row.names = FALSE)
       bi.ov.mta.out.existing <- data.frame()
 
       gc()
 
     }
   }
-  toc()
+  tictoc::toc()
 
   # Bind results for overall, bioregions, and countries. export to output directory
   out.mta.final <- rbind(mta.out.existing, co.mta.out.existing, bi.mta.out.existing)
@@ -338,7 +369,7 @@ pi.mta <- function(ll, puid, puid.num, countries, all.pa, st.pa, n2k, feat.info 
     ofname <- paste0(outdir, "/", project.name,"__",version, "__indicator_meantargetachievement.csv")
   }
 
-  write.csv(out.mta.final, ofname, row.names = FALSE)
+  utils::write.csv(out.mta.final, ofname, row.names = FALSE)
 
   message("Mean target achievement calculation done")
 

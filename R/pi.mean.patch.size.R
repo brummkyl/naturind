@@ -1,3 +1,29 @@
+#' Mean/Median Patch Size
+#'
+#' @param ll A character vector containing file paths of raster files (e.g., spatial prioritization outputs) in '.tif' format.
+#' @param puid A SpatRaster layer with planning units
+#' @param all.pa A SpatRaster layer with all existing protected areas
+#' @param st.pa A SpatRaster layer with all existing strict protected areas
+#' @param n2k A SpatRaster layer with all existing Natura 2000 protected areas (or any other unique subset of PAs)
+#' @param countries An sf vector layer containing individual countries
+#' @param bioregion An sf vector layer containing individual biogeographic regions
+#' @param threshold Majority rule threshold for binarizing a proportional protected area raster
+#' @param project.name A character vector specifying the name of your project
+#' @param version A character vector specifying the version (e.g., date) of your workflow
+#'
+#' @importFrom terra ifel
+#' @importFrom terra patches
+#' @importFrom terra expanse
+#' @importFrom stats median
+#'
+#' @returns A formatted .csv file saved to the "performance_outputs/version" directory
+#' @export
+#'
+#' @examples
+#' pi.mean.patch.size(ll, puid, all.pa, st.pa, n2k, countries, bioregion,
+#'                     threshold = 0.5, project.name = "Example Project",
+#'                     version = "Version 1")
+
 pi.mean.patch.size <- function(ll, puid, all.pa, st.pa, n2k, countries, bioregion, threshold = prop_binary_thresh, project.name, version){
 
   prop_binary_thresh <- threshold
