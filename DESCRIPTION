@@ -26,3 +26,5 @@ Imports:
     terra,
     tictoc,
     tools
+URL: https://github.com/brummkyl/naturind
+BugReports: https://github.com/brummkyl/naturind/issues
