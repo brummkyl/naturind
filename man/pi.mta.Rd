@@ -19,8 +19,7 @@ pi.mta(
   countries.sub,
   countries.sub2,
   bioregion.sub,
-  bioregion.sub2,
-  outdir
+  bioregion.sub2
 )
 }
 \arguments{
@@ -53,8 +52,6 @@ pi.mta(
 \item{bioregion.sub}{TBD}
 
 \item{bioregion.sub2}{TBD}
-
-\item{outdir}{Output directory}
 }
 \value{
 A formatted .csv file saved to the "performance_outputs/version" directory
