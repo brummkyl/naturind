@@ -56,6 +56,8 @@
 
 pi.mean.area <- function(ll, puid, all.pa, st.pa, n2k, countries, bioregion, project.name, version){
 
+  puid <- puid %>% mask(countries)
+
   ee <- ll %>% rast() %>% extend(puid)
   existing_pa_names <- c(basename(ll))
 
@@ -102,7 +104,7 @@ pi.mean.area <- function(ll, puid, all.pa, st.pa, n2k, countries, bioregion, pro
     ee <- ee %>% mask(ee[[1]])
   }
 
-  #ee <- ee %>% mask(ee[[1]])
+  ee <- ee %>% mask(puid)
 
   #######################################################################################
 
