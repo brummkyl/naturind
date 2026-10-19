@@ -54,7 +54,7 @@ pi.evp(
 
 \item{bioregion.sub2}{TBD}
 
-\item{edge.out}{TBD}
+\item{edge.out}{A dataframe with a character column, 'edge', containing EDGE species scientific names}
 }
 \value{
 A formatted .csv file saved to the "performance_outputs/version" directory

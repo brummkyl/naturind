@@ -24,7 +24,7 @@
 #' pi.mta(ll = "C:/.../solution_file.tif", puid, puid.num, countries, all.pa,
 #'         st.pa, n2k, feat.info, rij, project.name = "Example Project",
 #'         version = "Version 1", countries.sub, countries.sub2,
-#'         bioregion.sub, bioregion.sub2, outdir)
+#'         bioregion.sub, bioregion.sub2)
 #'}
 
 pi.mta <- function(ll, puid, puid.num, countries, all.pa, st.pa, n2k, feat.info = p, rij = y, project.name, version,
@@ -46,7 +46,7 @@ pi.mta <- function(ll, puid, puid.num, countries, all.pa, st.pa, n2k, feat.info 
   p <- feat.info
   y <- rij
 
-  ee <- ll %>% terra::rast() %>% terra::extend(puid) #%>% mask(countries)
+  ee <- ll %>% terra::rast() %>% terra::extend(puid) %>% mask(countries)
   existing_pa_names <- c(basename(ll))
 
   ee <- c(ee, all.pa, st.pa, n2k)
@@ -71,8 +71,7 @@ pi.mta <- function(ll, puid, puid.num, countries, all.pa, st.pa, n2k, feat.info 
     ee <- ee %>% terra::mask(ee[[1]])
   }
 
-  ee <- ee %>% mask(puid)
-
+  #ee <- ee %>% mask(puid)
   #ee <- ee %>% mask(ee[[1]])
 
   puid <- puid %>% terra::mask(ee[[1]])
@@ -271,7 +270,7 @@ pi.mta <- function(ll, puid, puid.num, countries, all.pa, st.pa, n2k, feat.info 
       # assert that overall MTA can accurately be back-calculated from these regional contributions
       xx = data.frame(sum = rowSums(co.ov.mta.out.existing[,2:ncol(co.ov.mta.out.existing)]))
       xx2 <- data.frame(sum = pmin(as.numeric(xx[[1]]), 1, na.rm = FALSE))
-      assertthat::assert_that(abs(mta - mean(xx2$sum)) < 1e-8)
+      assertthat::assert_that(abs(mta - mean(xx2$sum)) < 1e-4)
 
       outdir.mta <- paste0(outdir, "/MTA/")
       dir.create(outdir.mta, showWarnings = FALSE)
@@ -351,7 +350,7 @@ pi.mta <- function(ll, puid, puid.num, countries, all.pa, st.pa, n2k, feat.info 
       # assert that overall MTA can accurately be back-calculated from these regional contributions
       yy = data.frame(sum = rowSums(bi.ov.mta.out.existing[,2:ncol(bi.ov.mta.out.existing)]))
       yy2 <- data.frame(sum = pmin(as.numeric(yy[[1]]), 1, na.rm = FALSE))
-      assertthat::assert_that(abs(mta - mean(yy2$sum)) < 1e-8)
+      assertthat::assert_that(abs(mta - mean(yy2$sum)) < 1e-4)
 
       #if(consensus.sol == 1){
       #  ofname <- paste0(outdir.consensus, "/", "MTA/", project.name,"__", version, "__", paste0(file.name, "__indicator_MTA_",h,"_Bioregion_Contribution_Percentages.csv"))

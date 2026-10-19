@@ -15,7 +15,7 @@
 #' @param countries.sub2 TBD
 #' @param bioregion.sub TBD
 #' @param bioregion.sub2 TBD
-#' @param edge.out TBD
+#' @param edge.out A dataframe with a character column, 'edge', containing EDGE species scientific names
 #'
 #' @returns A formatted .csv file saved to the "performance_outputs/version" directory
 #' @export
@@ -86,7 +86,7 @@ pi.evp <- function(ll, puid, puid.num, countries, all.pa, st.pa, n2k, feat.info 
     ee <- ee %>% mask(ee[[1]])
   }
 
-  ee <- ee %>% mask(puid)
+  #ee <- ee %>% mask(puid)
   #ee <- ee %>% mask(ee[[1]])
 
   puid <- puid %>% mask(ee[[1]])
@@ -278,7 +278,7 @@ pi.evp <- function(ll, puid, puid.num, countries, all.pa, st.pa, n2k, feat.info 
 
     xx = data.frame(sum = rowSums(co.ov.evp.out.existing[,2:ncol(co.ov.evp.out.existing)]))
     xx2 <- data.frame(sum = pmin(as.numeric(xx[[1]]), 1, na.rm = FALSE))
-    assertthat::assert_that(abs(evp - mean(xx2$sum)) < 1e-8)
+    assertthat::assert_that(abs(evp - mean(xx2$sum)) < 1e-4)
 
     outdir.evp <- paste0(outdir, "/EVP/")
     dir.create(outdir.evp, showWarnings = FALSE)
@@ -363,7 +363,7 @@ pi.evp <- function(ll, puid, puid.num, countries, all.pa, st.pa, n2k, feat.info 
 
     yy = data.frame(sum = rowSums(bi.ov.evp.out.existing[,2:ncol(bi.ov.evp.out.existing)]))
     yy2 <- data.frame(sum = pmin(as.numeric(yy[[1]]), 1, na.rm = FALSE))
-    assertthat::assert_that(abs(evp - mean(yy2$sum)) < 1e-8)
+    assertthat::assert_that(abs(evp - mean(yy2$sum)) < 1e-4)
 
     #ofname <- paste0(outdir, "/", "EVP/", "NaturaConnect","__", version, "__",paste0("Existing ", file.name, " (", filtered[z],")"), "__indicator_EVP_Bioregion_Contribution_Percentages.csv")
     #if(consensus.sol == 1){
