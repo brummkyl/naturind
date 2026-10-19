@@ -3,7 +3,7 @@ Title: Package for assessing the performance of protected area networks
 Version: 0.0.0.9000
 Authors@R: 
     person("Kyle J.", "Brumm", , "kbrumm@clemson.edu", role = c("aut", "cre"),
-           comment = c(ORCID = "0000-0002-0557-8560"))
+           comment = c(ORCID = "0000-0002-6088-5627"))
 Description: Calculates a set of performance indicators for evaluating protected areas and expansion priorities at various spatial extents (e.g., across Europe and within individual biogeographic regions and countries).
 License: MIT + file LICENSE
 Encoding: UTF-8
