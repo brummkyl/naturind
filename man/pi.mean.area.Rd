@@ -42,6 +42,8 @@ A formatted .csv file saved to the "performance_outputs/version" directory
 Mean Network Area
 }
 \examples{
+\dontrun{
 pi.mean.area(ll = "C:/.../solution_file.tif", puid, all.pa, st.pa, n2k,
               countries, bioregion, project.name = "Example Project", version = "Version 1")
+}
 }

@@ -49,8 +49,10 @@
 #' @export
 #'
 #' @examples
+#' \dontrun{
 #' pi.mean.area(ll = "C:/.../solution_file.tif", puid, all.pa, st.pa, n2k,
 #'               countries, bioregion, project.name = "Example Project", version = "Version 1")
+#'}
 
 pi.mean.area <- function(ll, puid, all.pa, st.pa, n2k, countries, bioregion, project.name, version){
 

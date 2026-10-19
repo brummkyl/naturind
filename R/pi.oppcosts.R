@@ -11,8 +11,10 @@
 #' @export
 #'
 #' @examples
+#' \dontrun{
 #' pi.oppcosts(ll = "C:/.../solution_file.tif", puid, countries, bioregion,
 #'              project.name = "Example Project", version = "Version 1")
+#'}
 
 pi.oppcosts <- function(ll, puid, countries, bioregion, project.name, version){
 

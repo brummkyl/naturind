@@ -48,8 +48,10 @@ A formatted .csv file saved to the "performance_outputs/version" directory
 Conserved Carbon Stock and Sequestration Potential
 }
 \examples{
+\dontrun{
 pi.carbon(ll = "C:/.../solution_file.tif", puid, all.pa, st.pa, n2k,
            countries, bioregion, carbon.stock = carbon,
            carbon.sequestration = carbon.seq,
            project.name = "Example Project", version = "Version 1")
+}
 }

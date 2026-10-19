@@ -45,7 +45,9 @@ A formatted .csv file saved to the "performance_outputs/version" directory
 Transboundary Protection
 }
 \examples{
+\dontrun{
 pi.transboundary(ll = "C:/.../solution_file.tif", puid, all.pa, st.pa, n2k, countries,
                   bioregion, tb.buffers, project.name = "Example Project",
                   version = "Version 1")
+}
 }

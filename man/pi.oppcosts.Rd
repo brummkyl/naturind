@@ -26,6 +26,8 @@ A formatted .csv file saved to the "performance_outputs/version" directory
 Opportunity Costs
 }
 \examples{
+\dontrun{
 pi.oppcosts(ll = "C:/.../solution_file.tif", puid, countries, bioregion,
              project.name = "Example Project", version = "Version 1")
+}
 }

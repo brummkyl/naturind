@@ -16,9 +16,11 @@
 #' @export
 #'
 #' @examples
+#' \dontrun{
 #' pi.irreplaceability(ll = "C:/.../solution_file.tif", puid, all.pa, st.pa, n2k, countries,
 #'                      bioregion, beta.irr, irr.quantile = 0.9, project.name = "Example Project",
 #'                      version = "Version 1")
+#'}
 
 pi.irreplaceability <- function(ll, puid, all.pa, st.pa, n2k, countries, bioregion, gamma.irr, irr.quantile, project.name, version){
 

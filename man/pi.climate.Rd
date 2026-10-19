@@ -48,7 +48,9 @@ A formatted .csv file saved to the "performance_outputs/version" directory
 Conserved Climate Resilient Area
 }
 \examples{
+\dontrun{
 pi.climate(ll = "C:/.../solution_file.tif", puid, all.pa, st.pa, n2k,
             countries, bioregion, clim.res, climate.quantile = 0.9,
             project.name = "Example Project", version = "Version 1")
+}
 }

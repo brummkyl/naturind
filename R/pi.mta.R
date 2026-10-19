@@ -21,10 +21,12 @@
 #' @export
 #'
 #' @examples
+#' \dontrun{
 #' pi.mta(ll = "C:/.../solution_file.tif", puid, puid.num, countries, all.pa,
 #'         st.pa, n2k, feat.info, rij, project.name = "Example Project",
 #'         version = "Version 1", countries.sub, countries.sub2,
 #'         bioregion.sub, bioregion.sub2, outdir)
+#'}
 
 pi.mta <- function(ll, puid, puid.num, countries, all.pa, st.pa, n2k, feat.info = p, rij = y, project.name, version,
                    countries.sub, countries.sub2, bioregion.sub, bioregion.sub2, outdir){

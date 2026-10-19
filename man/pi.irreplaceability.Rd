@@ -48,7 +48,9 @@ A formatted .csv file saved to the "performance_outputs/version" directory
 Irreplaceability
 }
 \examples{
+\dontrun{
 pi.irreplaceability(ll = "C:/.../solution_file.tif", puid, all.pa, st.pa, n2k, countries,
                      bioregion, beta.irr, irr.quantile = 0.9, project.name = "Example Project",
                      version = "Version 1")
+}
 }

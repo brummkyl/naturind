@@ -15,9 +15,11 @@
 #' @export
 #'
 #' @examples
+#' \dontrun{
 #' pi.transboundary(ll = "C:/.../solution_file.tif", puid, all.pa, st.pa, n2k, countries,
 #'                   bioregion, tb.buffers, project.name = "Example Project",
 #'                   version = "Version 1")
+#'}
 
 pi.transboundary <- function(ll, puid, all.pa, st.pa, n2k, countries, bioregion, tb.buffers, project.name, version){
 

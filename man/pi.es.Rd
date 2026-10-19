@@ -48,7 +48,9 @@ A formatted .csv file saved to the "performance_outputs/version" directory
 Ecosystem Services
 }
 \examples{
+\dontrun{
 pi.es(ll = "C:/.../solution_file.tif", puid, all.pa, st.pa, n2k, countries,
        bioregion, pollination, capdem, project.name = "Example Project",
        version = "Version 1")
+}
 }

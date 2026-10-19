@@ -16,9 +16,11 @@
 #' @export
 #'
 #' @examples
+#' \dontrun{
 #' pi.climate(ll = "C:/.../solution_file.tif", puid, all.pa, st.pa, n2k,
 #'             countries, bioregion, clim.res, climate.quantile = 0.9,
 #'             project.name = "Example Project", version = "Version 1")
+#'}
 
 pi.climate <- function(ll, puid, all.pa, st.pa, n2k, countries, bioregion, clim.res, climate.quantile, project.name, version){
 

@@ -16,9 +16,11 @@
 #' @export
 #'
 #' @examples
+#' \dontrun{
 #' pi.es(ll = "C:/.../solution_file.tif", puid, all.pa, st.pa, n2k, countries,
 #'        bioregion, pollination, capdem, project.name = "Example Project",
 #'        version = "Version 1")
+#'}
 
 pi.es <- function(ll, puid, all.pa, st.pa, n2k, countries, bioregion, pollination = rs3, capdem = sp.reg.es, project.name, version){
 

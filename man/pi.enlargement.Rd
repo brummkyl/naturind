@@ -48,7 +48,9 @@ A formatted .csv file saved to the "performance_outputs/version" directory
 Protected Area Enlargement
 }
 \examples{
+\dontrun{
 pi.enlargement(ll = "C:/.../solution_file.tif", puid, all.pa, st.pa, n2k, variants,
                 countries, bioregion, pae_threshold, project.name = "Example Project",
                 version = "Version 1")
+}
 }
