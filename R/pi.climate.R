@@ -26,8 +26,8 @@ pi.climate <- function(ll, puid, all.pa, st.pa, n2k, countries, bioregion, clim.
 
   # Transform to ensure alignment of CRS
 
-  if(terra::crs(puid_area) != terra::crs(clim.res)){
-    clim.res <- clim.res |> terra::project(puid_area)
+  if(terra::crs(puid) != terra::crs(clim.res)){
+    clim.res <- clim.res |> terra::project(puid)
   }
   assertthat::assert_that(crs(clim.res) == crs(puid_area))
 

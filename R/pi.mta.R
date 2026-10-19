@@ -15,7 +15,6 @@
 #' @param countries.sub2 TBD
 #' @param bioregion.sub TBD
 #' @param bioregion.sub2 TBD
-#' @param outdir Output directory
 #'
 #' @returns A formatted .csv file saved to the "performance_outputs/version" directory
 #' @export
@@ -29,7 +28,7 @@
 #'}
 
 pi.mta <- function(ll, puid, puid.num, countries, all.pa, st.pa, n2k, feat.info = p, rij = y, project.name, version,
-                   countries.sub, countries.sub2, bioregion.sub, bioregion.sub2, outdir){
+                   countries.sub, countries.sub2, bioregion.sub, bioregion.sub2){
 
   outdir <- paste0("performance_outputs/", version)
   dir.create(outdir, showWarnings = FALSE)
@@ -177,7 +176,7 @@ pi.mta <- function(ll, puid, puid.num, countries, all.pa, st.pa, n2k, feat.info 
       ta <- data.frame(feature = names(Matrix::rowSums(rij_sel)),
                        pi = as.numeric(Matrix::rowSums(rij_sel)))
 
-      corrected.targets <- data.frame(name = features$name, value = rowSums(rij2) * features$prop)
+      corrected.targets <- data.frame(name = features$name, value = Matrix::rowSums(rij2) * features$prop)
 
       # Join in ti
       ta <- ta |> dplyr::left_join(corrected.targets |> dplyr::select(name, value) |>

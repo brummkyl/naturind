@@ -27,8 +27,8 @@ pi.irreplaceability <- function(ll, puid, all.pa, st.pa, n2k, countries, bioregi
   beta.irr <- gamma.irr
 
   # Transform to ensure alignment of CRS
-  if(terra::crs(puid_area) != terra::crs(beta.irr)){
-    beta.irr <- beta.irr |> terra::project(puid_area)
+  if(terra::crs(puid) != terra::crs(beta.irr)){
+    beta.irr <- beta.irr |> terra::project(puid)
   }
   assertthat::assert_that(crs(beta.irr) == crs(puid_area))
 
