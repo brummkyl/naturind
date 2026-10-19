@@ -120,11 +120,14 @@ pi.transboundary <- function(ll, puid, all.pa, st.pa, n2k, countries, bioregion,
   # Bind results for europe - existing PAs and europe - full NaturaConnect solutions, then export to output directory
   out.tb.final <- rbind(tb.europe.existing)
 
-  if(consensus.sol == 1){
-    ofname <- paste0(outdir.consensus, "/", project.name,"__",version, "__indicator_transboundaryprotection.csv")
-  } else if (consensus.sol == 0){
+  outdir <- paste0("performance_outputs/", version)
+  dir.create(outdir, showWarnings = FALSE)
+
+  #if(consensus.sol == 1){
+  #  ofname <- paste0(outdir.consensus, "/", project.name,"__",version, "__indicator_transboundaryprotection.csv")
+  #} else if (consensus.sol == 0){
     ofname <- paste0(outdir, "/", project.name,"__",version, "__indicator_transboundaryprotection.csv")
-  }
+  #}
 
   write.csv(out.tb.final, ofname, row.names = FALSE)
 

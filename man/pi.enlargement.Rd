@@ -13,6 +13,7 @@ pi.enlargement(
   variants,
   countries,
   bioregion,
+  pae_threshold,
   project.name,
   version
 )
@@ -34,6 +35,8 @@ pi.enlargement(
 
 \item{bioregion}{An sf vector layer containing individual biogeographic regions}
 
+\item{pae_threshold}{A numeric specifying the distance threshold used to characterize expansion areas as enlargements or new establishments}
+
 \item{project.name}{A character vector specifying the name of your project}
 
 \item{version}{A character vector specifying the version (e.g., date) of your workflow}
@@ -46,6 +49,6 @@ Protected Area Enlargement
 }
 \examples{
 pi.enlargement(ll = "C:/.../solution_file.tif", puid, all.pa, st.pa, n2k, variants,
-                countries, bioregion, project.name = "Example Project",
+                countries, bioregion, pae_threshold, project.name = "Example Project",
                 version = "Version 1")
 }

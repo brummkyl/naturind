@@ -8,6 +8,7 @@
 #' @param countries An sf vector layer containing individual countries
 #' @param bioregion An sf vector layer containing individual biogeographic regions
 #' @param gamma.irr A SpatRaster layer containing gamma irreplaceability scores for planning units
+#' @param irr.quantile A double specifying the gamma irreplaceability quantile
 #' @param project.name A character vector specifying the name of your project
 #' @param version A character vector specifying the version (e.g., date) of your workflow
 #'
@@ -16,10 +17,10 @@
 #'
 #' @examples
 #' pi.irreplaceability(ll = "C:/.../solution_file.tif", puid, all.pa, st.pa, n2k, countries,
-#'                      bioregion, beta.irr, project.name = "Example Project",
+#'                      bioregion, beta.irr, irr.quantile = 0.9, project.name = "Example Project",
 #'                      version = "Version 1")
 
-pi.irreplaceability <- function(ll, puid, all.pa, st.pa, n2k, countries, bioregion, gamma.irr, project.name, version){
+pi.irreplaceability <- function(ll, puid, all.pa, st.pa, n2k, countries, bioregion, gamma.irr, irr.quantile, project.name, version){
 
   beta.irr <- gamma.irr
 
@@ -235,11 +236,14 @@ pi.irreplaceability <- function(ll, puid, all.pa, st.pa, n2k, countries, bioregi
   # Convert from proportions to percentages
   out.beta.irr.final$value <- out.beta.irr.final$value * 100
 
-  if(consensus.sol == 1){
-    ofname <- paste0(outdir.consensus, "/", project.name,"__",version, "__indicator_irreplaceability.csv")
-  } else if (consensus.sol == 0){
+  outdir <- paste0("performance_outputs/", version)
+  dir.create(outdir, showWarnings = FALSE)
+
+  #if(consensus.sol == 1){
+  #  ofname <- paste0(outdir.consensus, "/", project.name,"__",version, "__indicator_irreplaceability.csv")
+  #} else if (consensus.sol == 0){
     ofname <- paste0(outdir, "/", project.name,"__",version, "__indicator_irreplaceability.csv")
-  }
+  #}
 
   write.csv(out.beta.irr.final, ofname, row.names = FALSE)
 

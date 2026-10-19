@@ -8,6 +8,7 @@
 #' @param countries An sf vector layer containing individual countries
 #' @param bioregion An sf vector layer containing individual biogeographic regions
 #' @param clim.res A continuous SpatRaster layer with larger values representing areas that are more climate resilient
+#' @param climate.quantile A double specifying the climate resilience quantile
 #' @param project.name A character vector specifying the name of your project
 #' @param version A character vector specifying the version (e.g., date) of your workflow
 #'
@@ -16,10 +17,10 @@
 #'
 #' @examples
 #' pi.climate(ll = "C:/.../solution_file.tif", puid, all.pa, st.pa, n2k,
-#'             countries, bioregion, clim.res, project.name = "Example Project",
-#'             version = "Version 1")
+#'             countries, bioregion, clim.res, climate.quantile = 0.9,
+#'             project.name = "Example Project", version = "Version 1")
 
-pi.climate <- function(ll, puid, all.pa, st.pa, n2k, countries, bioregion, clim.res, project.name, version){
+pi.climate <- function(ll, puid, all.pa, st.pa, n2k, countries, bioregion, clim.res, climate.quantile, project.name, version){
 
   ee <- ll %>% rast() %>% extend(puid)
   existing_pa_names <- c(basename(ll))
@@ -237,11 +238,14 @@ pi.climate <- function(ll, puid, all.pa, st.pa, n2k, countries, bioregion, clim.
   # Convert from proportions to percentages
   out.climate.final$value <- out.climate.final$value * 100
 
-  if(consensus.sol == 1){
-    ofname <- paste0(outdir.consensus, "/", project.name,"__",version, "__indicator_climateresilience.csv")
-  } else if (consensus.sol == 0){
+  outdir <- paste0("performance_outputs/", version)
+  dir.create(outdir, showWarnings = FALSE)
+
+  #if(consensus.sol == 1){
+  #  ofname <- paste0(outdir.consensus, "/", project.name,"__",version, "__indicator_climateresilience.csv")
+  #} else if (consensus.sol == 0){
     ofname <- paste0(outdir, "/", project.name,"__",version, "__indicator_climateresilience.csv")
-  }
+  #}
 
   write.csv(out.climate.final, ofname, row.names = FALSE)
 

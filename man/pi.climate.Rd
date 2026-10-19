@@ -13,6 +13,7 @@ pi.climate(
   countries,
   bioregion,
   clim.res,
+  climate.quantile,
   project.name,
   version
 )
@@ -34,6 +35,8 @@ pi.climate(
 
 \item{clim.res}{A continuous SpatRaster layer with larger values representing areas that are more climate resilient}
 
+\item{climate.quantile}{A double specifying the climate resilience quantile}
+
 \item{project.name}{A character vector specifying the name of your project}
 
 \item{version}{A character vector specifying the version (e.g., date) of your workflow}
@@ -46,6 +49,6 @@ Conserved Climate Resilient Area
 }
 \examples{
 pi.climate(ll = "C:/.../solution_file.tif", puid, all.pa, st.pa, n2k,
-            countries, bioregion, clim.res, project.name = "Example Project",
-            version = "Version 1")
+            countries, bioregion, clim.res, climate.quantile = 0.9,
+            project.name = "Example Project", version = "Version 1")
 }

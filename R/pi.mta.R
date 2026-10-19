@@ -29,6 +29,9 @@
 pi.mta <- function(ll, puid, puid.num, countries, all.pa, st.pa, n2k, feat.info = p, rij = y, project.name, version,
                    countries.sub, countries.sub2, bioregion.sub, bioregion.sub2, outdir){
 
+  outdir <- paste0("performance_outputs/", version)
+  dir.create(outdir, showWarnings = FALSE)
+
   # Deep-copy every terra object you might mutate, before doing anything else
   puid      <- terra::deepcopy(puid)
   puid.num  <- terra::deepcopy(puid.num)
@@ -264,11 +267,14 @@ pi.mta <- function(ll, puid, puid.num, countries, all.pa, st.pa, n2k, feat.info 
       xx2 <- data.frame(sum = pmin(as.numeric(xx[[1]]), 1, na.rm = FALSE))
       assertthat::assert_that(abs(mta - mean(xx2$sum)) < 1e-8)
 
-      if(consensus.sol == 1){
-        ofname <- paste0(outdir.consensus, "/", "MTA/", project.name,"__", version, "__",paste0(file.name, "__indicator_MTA_",h,"_Country_Contribution_Percentages.csv"))
-      } else if (consensus.sol == 0){
-        ofname <- paste0(outdir, "/", "MTA/", project.name,"__", version, "__",paste0(file.name, "__indicator_MTA_",h,"_Country_Contribution_Percentages.csv"))
-      }
+      outdir.mta <- paste0(outdir, "/MTA/")
+      dir.create(outdir.mta, showWarnings = FALSE)
+
+      #if(consensus.sol == 1){
+      #  ofname <- paste0(outdir.consensus, "/", "MTA/", project.name,"__", version, "__",paste0(file.name, "__indicator_MTA_",h,"_Country_Contribution_Percentages.csv"))
+      #} else if (consensus.sol == 0){
+        ofname <- paste0(outdir.mta, project.name,"__", version, "__",paste0(file.name, "__indicator_MTA_",h,"_Country_Contribution_Percentages.csv"))
+      #}
 
       utils::write.csv(co.ov.mta.out.existing, ofname, row.names = FALSE)
       co.ov.mta.out.existing <- data.frame()
@@ -341,11 +347,11 @@ pi.mta <- function(ll, puid, puid.num, countries, all.pa, st.pa, n2k, feat.info 
       yy2 <- data.frame(sum = pmin(as.numeric(yy[[1]]), 1, na.rm = FALSE))
       assertthat::assert_that(abs(mta - mean(yy2$sum)) < 1e-8)
 
-      if(consensus.sol == 1){
-        ofname <- paste0(outdir.consensus, "/", "MTA/", project.name,"__", version, "__", paste0(file.name, "__indicator_MTA_",h,"_Bioregion_Contribution_Percentages.csv"))
-      } else if (consensus.sol == 0){
-        ofname <- paste0(outdir, "/", "MTA/", project.name,"__", version, "__", paste0(file.name, "__indicator_MTA_",h,"_Bioregion_Contribution_Percentages.csv"))
-      }
+      #if(consensus.sol == 1){
+      #  ofname <- paste0(outdir.consensus, "/", "MTA/", project.name,"__", version, "__", paste0(file.name, "__indicator_MTA_",h,"_Bioregion_Contribution_Percentages.csv"))
+      #} else if (consensus.sol == 0){
+        ofname <- paste0(outdir.mta, project.name,"__", version, "__", paste0(file.name, "__indicator_MTA_",h,"_Bioregion_Contribution_Percentages.csv"))
+      #}
 
       utils::write.csv(bi.ov.mta.out.existing, ofname, row.names = FALSE)
       bi.ov.mta.out.existing <- data.frame()
@@ -360,11 +366,11 @@ pi.mta <- function(ll, puid, puid.num, countries, all.pa, st.pa, n2k, feat.info 
   out.mta.final <- rbind(mta.out.existing, co.mta.out.existing, bi.mta.out.existing)
   out.mta.final$value <- out.mta.final$value * 100
 
-  if(consensus.sol == 1){
-    ofname <- paste0(outdir.consensus, "/", project.name,"__",version, "__indicator_meantargetachievement.csv")
-  } else if (consensus.sol == 0){
+  #if(consensus.sol == 1){
+  #  ofname <- paste0(outdir.consensus, "/", project.name,"__",version, "__indicator_meantargetachievement.csv")
+  #} else if (consensus.sol == 0){
     ofname <- paste0(outdir, "/", project.name,"__",version, "__indicator_meantargetachievement.csv")
-  }
+  #}
 
   utils::write.csv(out.mta.final, ofname, row.names = FALSE)
 

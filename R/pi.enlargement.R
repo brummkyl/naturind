@@ -8,6 +8,7 @@
 #' @param variants A dataframe containing, at minimum, a column named "expand_on", which describes whether expansion priorities expand on
 #' @param countries An sf vector layer containing individual countries
 #' @param bioregion An sf vector layer containing individual biogeographic regions
+#' @param pae_threshold A numeric specifying the distance threshold used to characterize expansion areas as enlargements or new establishments
 #' @param project.name A character vector specifying the name of your project
 #' @param version A character vector specifying the version (e.g., date) of your workflow
 #'
@@ -16,11 +17,11 @@
 #'
 #' @examples
 #' pi.enlargement(ll = "C:/.../solution_file.tif", puid, all.pa, st.pa, n2k, variants,
-#'                 countries, bioregion, project.name = "Example Project",
+#'                 countries, bioregion, pae_threshold, project.name = "Example Project",
 #'                 version = "Version 1")
 
 pi.enlargement <- function(ll, puid, all.pa, st.pa, n2k, variants,
-                           countries, bioregion, project.name, version){
+                           countries, bioregion, pae_threshold, project.name, version){
 
 
   # Script for calculating Queen's distance transition layers (i.e., how far away is each PU from the nearest PA?)
@@ -261,7 +262,7 @@ pi.enlargement <- function(ll, puid, all.pa, st.pa, n2k, variants,
     #     pa <- st.pa
     #     mh <- mh.strict.all
     #   }
-    if(consensus.sol == 0){
+    #if(consensus.sol == 0){
       if (variants$expand_on[match_idx] == "all" && !grepl("strict", basename(ll[[i]]), ignore.case = TRUE)){ #grepl("all", basename(ll[[i]]), ignore.case = TRUE) && !grepl("strict", basename(ll[[i]]), ignore.case = TRUE)) {
         pa = all.pa
         mh = mh.all
@@ -279,7 +280,7 @@ pi.enlargement <- function(ll, puid, all.pa, st.pa, n2k, variants,
         mh = mh.strict.n2k
         #var.variant = "Strict"
       }
-    }
+    #}
 
     pa.sol.area <- pa.sol #* puid_area
     ov.sol.full <- ifel(pa.sol.area + pa > 1, 1, pa.sol.area + pa)
@@ -518,11 +519,14 @@ pi.enlargement <- function(ll, puid, all.pa, st.pa, n2k, variants,
   # Convert from proportions to percentages
   out.enlargement.final$value <- out.enlargement.final$value * 100
 
-  if(consensus.sol == 1){
-    ofname <- paste0(outdir.consensus, "/", project.name,"__",version, "__indicator_paenlargement.csv")
-  } else if (consensus.sol == 0){
+  outdir <- paste0("performance_outputs/", version)
+  dir.create(outdir, showWarnings = FALSE)
+
+  #if(consensus.sol == 1){
+  #  ofname <- paste0(outdir.consensus, "/", project.name,"__",version, "__indicator_paenlargement.csv")
+  #} else if (consensus.sol == 0){
     ofname <- paste0(outdir, "/", project.name,"__",version, "__indicator_paenlargement.csv")
-  }
+  #}
 
   write.csv(out.enlargement.final, ofname, row.names = FALSE)
 

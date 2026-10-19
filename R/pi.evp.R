@@ -15,6 +15,7 @@
 #' @param countries.sub2 TBD
 #' @param bioregion.sub TBD
 #' @param bioregion.sub2 TBD
+#' @param edge.out TBD
 #'
 #' @returns A formatted .csv file saved to the "performance_outputs/version" directory
 #' @export
@@ -23,10 +24,13 @@
 #' pi.evp(ll = "C:/.../solution_file.tif", puid, puid.num, countries,
 #'         all.pa, st.pa, n2k, feat.info, rij, project.name = "Example Project",
 #'         version = "Version 1", countries.sub, countries.sub2,
-#'         bioregion.sub, bioregion.sub2)
+#'         bioregion.sub, bioregion.sub2, edge.out)
 
 pi.evp <- function(ll, puid, puid.num, countries, all.pa, st.pa, n2k, feat.info = p, rij = y, project.name, version,
-                   countries.sub, countries.sub2, bioregion.sub, bioregion.sub2){
+                   countries.sub, countries.sub2, bioregion.sub, bioregion.sub2, edge.out){
+
+  outdir <- paste0("performance_outputs/", version)
+  dir.create(outdir, showWarnings = FALSE)
 
   # Deep-copy every terra object you might mutate, before doing anything else
   puid      <- terra::deepcopy(puid)
@@ -269,12 +273,15 @@ pi.evp <- function(ll, puid, puid.num, countries, all.pa, st.pa, n2k, feat.info 
     xx2 <- data.frame(sum = pmin(as.numeric(xx[[1]]), 1, na.rm = FALSE))
     assertthat::assert_that(abs(evp - mean(xx2$sum)) < 1e-8)
 
+    outdir.evp <- paste0(outdir, "/EVP/")
+    dir.create(outdir.evp, showWarnings = FALSE)
+
     #ofname <- paste0(outdir, "/", "EVP/", "NaturaConnect","__", version, "__",paste0("Existing ", file.name, " (", filtered[z],")"), "__indicator_EVP_Country_Contribution_Percentages.csv")
-    if(consensus.sol == 1){
-      ofname <- paste0(outdir.consensus, "/", "EVP/", project.name,"__", version, "__",paste0(file.name, "__indicator_EVP_Country_Contribution_Percentages.csv"))
-    } else if (consensus.sol == 0){
-      ofname <- paste0(outdir, "/", "EVP/", project.name,"__", version, "__",paste0(file.name, "__indicator_EVP_Country_Contribution_Percentages.csv"))
-    }
+    #if(consensus.sol == 1){
+    #  ofname <- paste0(outdir.consensus, "/", "EVP/", project.name,"__", version, "__",paste0(file.name, "__indicator_EVP_Country_Contribution_Percentages.csv"))
+    #} else if (consensus.sol == 0){
+      ofname <- paste0(outdir.evp, project.name,"__", version, "__",paste0(file.name, "__indicator_EVP_Country_Contribution_Percentages.csv"))
+    #}
 
     write.csv(co.ov.evp.out.existing, ofname, row.names = FALSE)
     co.ov.evp.out.existing <- data.frame()
@@ -352,11 +359,11 @@ pi.evp <- function(ll, puid, puid.num, countries, all.pa, st.pa, n2k, feat.info 
     assertthat::assert_that(abs(evp - mean(yy2$sum)) < 1e-8)
 
     #ofname <- paste0(outdir, "/", "EVP/", "NaturaConnect","__", version, "__",paste0("Existing ", file.name, " (", filtered[z],")"), "__indicator_EVP_Bioregion_Contribution_Percentages.csv")
-    if(consensus.sol == 1){
-      ofname <- paste0(outdir.consensus, "/", "EVP/", project.name,"__", version, "__",paste0(file.name, "__indicator_EVP_Bioregion_Contribution_Percentages.csv"))
-    } else if (consensus.sol == 0){
-      ofname <- paste0(outdir, "/", "EVP/", project.name,"__", version, "__",paste0(file.name, "__indicator_EVP_Bioregion_Contribution_Percentages.csv"))
-    }
+    #if(consensus.sol == 1){
+    #  ofname <- paste0(outdir.consensus, "/", "EVP/", project.name,"__", version, "__",paste0(file.name, "__indicator_EVP_Bioregion_Contribution_Percentages.csv"))
+    #} else if (consensus.sol == 0){
+      ofname <- paste0(outdir.evp, project.name,"__", version, "__",paste0(file.name, "__indicator_EVP_Bioregion_Contribution_Percentages.csv"))
+    #}
 
     write.csv(bi.ov.evp.out.existing, ofname, row.names = FALSE)
     bi.ov.evp.out.existing <- data.frame()
@@ -369,11 +376,12 @@ pi.evp <- function(ll, puid, puid.num, countries, all.pa, st.pa, n2k, feat.info 
   out.evp.final$value <- out.evp.final$value * 100
 
   #ofname <- paste0(outdir, "/", "NaturaConnect","__",version, "__indicator_evolutionarypotential.csv")
-  if(consensus.sol == 1){
-    ofname <- paste0(outdir.consensus, "/", project.name,"__",version, "__indicator_evolutionarypotential.csv")
-  } else if (consensus.sol == 0){
+
+  #if(consensus.sol == 1){
+  #  ofname <- paste0(outdir.consensus, "/", project.name,"__",version, "__indicator_evolutionarypotential.csv")
+  #} else if (consensus.sol == 0){
     ofname <- paste0(outdir, "/", project.name,"__",version, "__indicator_evolutionarypotential.csv")
-  }
+  #}
 
   write.csv(out.evp.final, ofname, row.names = FALSE)
 

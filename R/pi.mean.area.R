@@ -12,6 +12,7 @@
 #'
 #' @importFrom dplyr mutate
 #' @importFrom dplyr filter
+#' @importFrom dplyr select
 #' @importFrom magrittr %>%
 #' @importFrom Matrix Diagonal
 #' @importFrom parallel clusterEvalQ
@@ -215,11 +216,14 @@ pi.mean.area <- function(ll, puid, all.pa, st.pa, n2k, countries, bioregion, pro
   # Convert from proportions to percentages
   out.area.final$value <- out.area.final$value * 100
 
-  if(consensus.sol == 1){
-    ofname <- paste0(outdir.consensus, "/", project.name,"__",version, "__indicator_relativeareacoverage.csv")
-  } else if (consensus.sol == 0){
+  outdir <- paste0("performance_outputs/", version)
+  dir.create(outdir, showWarnings = FALSE)
+
+  #if(consensus.sol == 1){
+  #  ofname <- paste0(outdir.consensus, "/", project.name,"__",version, "__indicator_relativeareacoverage.csv")
+  #} else if (consensus.sol == 0){
     ofname <- paste0(outdir, "/", project.name,"__",version, "__indicator_relativeareacoverage.csv")
-  }
+  #}
 
   write.csv(out.area.final, ofname, row.names = FALSE)
   message("Area calculation done. Don't forget to create/update variable definitions")

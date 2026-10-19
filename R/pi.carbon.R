@@ -274,11 +274,14 @@ pi.carbon <- function(ll, puid, all.pa, st.pa, n2k, countries, bioregion, carbon
   # Bind results for europe, bioregions and countries, then export to output directory
   out.carb.final <- rbind(carbon.europe.existing, carbon.bioregion.existing, carbon.countries.existing)
 
-  if(consensus.sol == 1){
-    ofname <- paste0(outdir.consensus, "/", project.name,"__",version, "__indicator_conservedcarbon.csv")
-  } else if (consensus.sol == 0){
+  outdir <- paste0("performance_outputs/", version)
+  dir.create(outdir, showWarnings = FALSE)
+
+  #if(consensus.sol == 1){
+  #  ofname <- paste0(outdir.consensus, "/", project.name,"__",version, "__indicator_conservedcarbon.csv")
+  #} else if (consensus.sol == 0){
     ofname <- paste0(outdir, "/", project.name,"__",version, "__indicator_conservedcarbon.csv")
-  }
+  #}
 
   write.csv(out.carb.final, ofname, row.names = FALSE)
 

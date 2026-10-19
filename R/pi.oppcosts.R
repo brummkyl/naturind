@@ -278,11 +278,14 @@ pi.oppcosts <- function(ll, puid, countries, bioregion, project.name, version){
   # Bind results for bioregions and countries, then export to output directory
   out.oppcosts.final <- rbind(oppcosts.europe, oppcosts.bioregion, oppcosts.countries)
 
-  if(consensus.sol == 1){
-    ofname <- paste0(outdir.consensus, "/", project.name,"__",version, "__indicator_foregoneopportunitycosts.csv")
-  } else if (consensus.sol == 0){
+  outdir <- paste0("performance_outputs/", version)
+  dir.create(outdir, showWarnings = FALSE)
+
+  #if(consensus.sol == 1){
+  #  ofname <- paste0(outdir.consensus, "/", project.name,"__",version, "__indicator_foregoneopportunitycosts.csv")
+  #} else if (consensus.sol == 0){
     ofname <- paste0(outdir, "/", project.name,"__",version, "__indicator_foregoneopportunitycosts.csv")
-  }
+  #}
 
   write.csv(out.oppcosts.final, ofname, row.names = FALSE)
 

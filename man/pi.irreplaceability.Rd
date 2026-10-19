@@ -13,6 +13,7 @@ pi.irreplaceability(
   countries,
   bioregion,
   gamma.irr,
+  irr.quantile,
   project.name,
   version
 )
@@ -34,6 +35,8 @@ pi.irreplaceability(
 
 \item{gamma.irr}{A SpatRaster layer containing gamma irreplaceability scores for planning units}
 
+\item{irr.quantile}{A double specifying the gamma irreplaceability quantile}
+
 \item{project.name}{A character vector specifying the name of your project}
 
 \item{version}{A character vector specifying the version (e.g., date) of your workflow}
@@ -46,6 +49,6 @@ Irreplaceability
 }
 \examples{
 pi.irreplaceability(ll = "C:/.../solution_file.tif", puid, all.pa, st.pa, n2k, countries,
-                     bioregion, beta.irr, project.name = "Example Project",
+                     bioregion, beta.irr, irr.quantile = 0.9, project.name = "Example Project",
                      version = "Version 1")
 }

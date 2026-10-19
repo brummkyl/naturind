@@ -19,7 +19,8 @@ pi.evp(
   countries.sub,
   countries.sub2,
   bioregion.sub,
-  bioregion.sub2
+  bioregion.sub2,
+  edge.out
 )
 }
 \arguments{
@@ -52,6 +53,8 @@ pi.evp(
 \item{bioregion.sub}{TBD}
 
 \item{bioregion.sub2}{TBD}
+
+\item{edge.out}{TBD}
 }
 \value{
 A formatted .csv file saved to the "performance_outputs/version" directory
@@ -63,5 +66,5 @@ Evolutionary Potential
 pi.evp(ll = "C:/.../solution_file.tif", puid, puid.num, countries,
         all.pa, st.pa, n2k, feat.info, rij, project.name = "Example Project",
         version = "Version 1", countries.sub, countries.sub2,
-        bioregion.sub, bioregion.sub2)
+        bioregion.sub, bioregion.sub2, edge.out)
 }

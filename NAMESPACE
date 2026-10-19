@@ -15,7 +15,8 @@ importFrom(Matrix,Diagonal)
 importFrom(doParallel,registerDoParallel)
 importFrom(dplyr,
   filter,
-  mutate
+  mutate,
+  select
 )
 importFrom(foreach,
   "%dopar%",
