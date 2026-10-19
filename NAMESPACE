@@ -11,7 +11,10 @@ export(pi.mean.patch.size)
 export(pi.mta)
 export(pi.oppcosts)
 export(pi.transboundary)
-importFrom(Matrix,Diagonal)
+importFrom(Matrix,
+  Diagonal,
+  rowSums
+)
 importFrom(doParallel,registerDoParallel)
 importFrom(dplyr,
   filter,

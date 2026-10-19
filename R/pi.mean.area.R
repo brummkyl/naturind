@@ -15,6 +15,7 @@
 #' @importFrom dplyr select
 #' @importFrom magrittr %>%
 #' @importFrom Matrix Diagonal
+#' @importFrom Matrix rowSums
 #' @importFrom parallel clusterEvalQ
 #' @importFrom parallel clusterExport
 #' @importFrom parallel makeCluster
