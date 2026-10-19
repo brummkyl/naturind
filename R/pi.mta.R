@@ -41,6 +41,9 @@ pi.mta <- function(ll, puid, puid.num, countries, all.pa, st.pa, n2k, feat.info 
   st.pa     <- terra::deepcopy(st.pa)
   n2k       <- terra::deepcopy(n2k)
 
+  puid <- puid %>% mask(countries)
+  puid.num <- puid.num %>% mask(countries)
+
   p <- feat.info
   y <- rij
 
@@ -68,6 +71,8 @@ pi.mta <- function(ll, puid, puid.num, countries, all.pa, st.pa, n2k, feat.info 
     message("NA footprints differ between ee layers; masking stack to align with the first input layer...")
     ee <- ee %>% terra::mask(ee[[1]])
   }
+
+  ee <- ee %>% mask(puid)
 
   #ee <- ee %>% mask(ee[[1]])
 

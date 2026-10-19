@@ -25,9 +25,6 @@ pi.mean.patch.size <- function(ll, puid, all.pa, st.pa, n2k, countries, bioregio
 
   prop_binary_thresh <- threshold
 
-  ee <- ll %>% rast() %>% extend(puid)
-  existing_pa_names <- c(basename(ll))
-
   # Transform to ensure alignment of CRS
   if(terra::crs(puid) != terra::crs(all.pa)){
     all.pa <- all.pa |> terra::project(puid)
@@ -43,6 +40,12 @@ pi.mean.patch.size <- function(ll, puid, all.pa, st.pa, n2k, countries, bioregio
     n2k <- n2k |> terra::project(puid)
   }
   assertthat::assert_that(crs(n2k) == crs(puid))
+
+  puid <- puid %>% mask(countries)
+  puid_area <- puid
+
+  ee <- ll %>% rast() %>% extend(puid)
+  existing_pa_names <- c(basename(ll))
 
   # stack layers
   ee <- c(ee, all.pa, st.pa, n2k)
@@ -68,7 +71,8 @@ pi.mean.patch.size <- function(ll, puid, all.pa, st.pa, n2k, countries, bioregio
     ee <- ee %>% mask(ee[[1]])
   }
   #ee <- list(all.pa, st.pa, n2k)
-  ee <- rast(ll) %>% mask(countries)
+  #ee <- rast(ll) %>% mask(countries)
+  ee <- ee %>% mask(puid)
 
   # calculations
 

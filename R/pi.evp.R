@@ -41,6 +41,9 @@ pi.evp <- function(ll, puid, puid.num, countries, all.pa, st.pa, n2k, feat.info 
   st.pa     <- terra::deepcopy(st.pa)
   n2k       <- terra::deepcopy(n2k)
 
+  puid <- puid %>% mask(countries)
+  puid.num <- puid.num %>% mask(countries)
+
   p <- feat.info
   y <- rij
 
@@ -83,6 +86,7 @@ pi.evp <- function(ll, puid, puid.num, countries, all.pa, st.pa, n2k, feat.info 
     ee <- ee %>% mask(ee[[1]])
   }
 
+  ee <- ee %>% mask(puid)
   #ee <- ee %>% mask(ee[[1]])
 
   puid <- puid %>% mask(ee[[1]])
@@ -119,6 +123,7 @@ pi.evp <- function(ll, puid, puid.num, countries, all.pa, st.pa, n2k, feat.info 
       gc()
     }
   })
+
   #######################################################################################
 
   # EXISTING PROTECTED AREAS

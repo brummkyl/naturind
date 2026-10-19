@@ -26,9 +26,6 @@ pi.irreplaceability <- function(ll, puid, all.pa, st.pa, n2k, countries, bioregi
 
   beta.irr <- gamma.irr
 
-  ee <- ll %>% rast() %>% extend(puid)
-  existing_pa_names <- c(basename(ll))
-
   # Transform to ensure alignment of CRS
   if(terra::crs(puid_area) != terra::crs(beta.irr)){
     beta.irr <- beta.irr |> terra::project(puid_area)
@@ -49,6 +46,12 @@ pi.irreplaceability <- function(ll, puid, all.pa, st.pa, n2k, countries, bioregi
     n2k <- n2k |> terra::project(puid)
   }
   assertthat::assert_that(crs(n2k) == crs(puid))
+
+  puid <- puid %>% mask(countries)
+  puid_area <- puid
+
+  ee <- ll %>% rast() %>% extend(puid)
+  existing_pa_names <- c(basename(ll))
 
   # stack layers
   ee <- c(ee, all.pa, st.pa, n2k)
@@ -77,6 +80,7 @@ pi.irreplaceability <- function(ll, puid, all.pa, st.pa, n2k, countries, bioregi
     ee <- ee %>% mask(ee[[1]])
   }
 
+  ee <- ee %>% mask(puid)
   #ee <- ee %>% mask(ee[[1]])
 
   beta.irr <- beta.irr %>% extend(puid) %>% crop(ee[[1]]) %>% mask(ee[[1]])

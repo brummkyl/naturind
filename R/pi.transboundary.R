@@ -47,6 +47,8 @@ pi.transboundary <- function(ll, puid, all.pa, st.pa, n2k, countries, bioregion,
   }
   assertthat::assert_that(crs(n2k) == crs(puid))
 
+  puid <- puid %>% mask(countries)
+
   # stack layers
   ee <- c(ee, all.pa, st.pa, n2k)
   existing_pa_names <- c(existing_pa_names, "Existing all PA", "Existing strict PA", "Existing N2K")

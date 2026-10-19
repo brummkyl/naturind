@@ -28,9 +28,6 @@ pi.carbon <- function(ll, puid, all.pa, st.pa, n2k, countries, bioregion, carbon
   carbon <- carbon.stock
   carbon.seq <- carbon.sequestration
 
-  ee <- ll %>% rast() %>% extend(puid)
-  existing_pa_names <- c(basename(ll))
-
   # Transform to ensure alignment of CRS, and run assertions
   if(terra::crs(puid) != terra::crs(carbon)){
     carbon <- carbon |> terra::project(puid)
@@ -56,6 +53,12 @@ pi.carbon <- function(ll, puid, all.pa, st.pa, n2k, countries, bioregion, carbon
     n2k <- n2k |> terra::project(puid)
   }
   assertthat::assert_that(crs(n2k) == crs(puid))
+
+  puid <- puid %>% mask(countries)
+  puid_area <- puid
+
+  ee <- ll %>% rast() %>% extend(puid)
+  existing_pa_names <- c(basename(ll))
 
   # stack layers
   ee <- c(ee, all.pa, st.pa, n2k)
@@ -85,6 +88,7 @@ pi.carbon <- function(ll, puid, all.pa, st.pa, n2k, countries, bioregion, carbon
     ee <- ee %>% mask(ee[[1]])
   }
 
+  ee <- ee %>% mask(puid)
   #ee <- ee %>% mask(ee[[1]])
 
   carbon <- carbon %>% mask(ee[[1]])

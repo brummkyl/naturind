@@ -56,13 +56,6 @@
 
 pi.mean.area <- function(ll, puid, all.pa, st.pa, n2k, countries, bioregion, project.name, version){
 
-  puid <- puid %>% mask(countries)
-
-  ee <- ll %>% rast() %>% extend(puid)
-  existing_pa_names <- c(basename(ll))
-
-  puid_area <- puid
-
   # Transform to ensure alignment of CRS
   if(terra::crs(puid) != terra::crs(all.pa)){
     all.pa <- all.pa |> terra::project(puid)
@@ -78,6 +71,12 @@ pi.mean.area <- function(ll, puid, all.pa, st.pa, n2k, countries, bioregion, pro
     n2k <- n2k |> terra::project(puid)
   }
   assertthat::assert_that(crs(n2k) == crs(puid))
+
+  puid <- puid %>% mask(countries)
+  puid_area <- puid
+
+  ee <- ll %>% rast() %>% extend(puid)
+  existing_pa_names <- c(basename(ll))
 
   ee <- c(ee, all.pa, st.pa, n2k)
   existing_pa_names <- c(existing_pa_names, "Existing all PA", "Existing strict PA", "Existing N2K")

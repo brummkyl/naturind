@@ -24,9 +24,6 @@
 
 pi.climate <- function(ll, puid, all.pa, st.pa, n2k, countries, bioregion, clim.res, climate.quantile, project.name, version){
 
-  ee <- ll %>% rast() %>% extend(puid)
-  existing_pa_names <- c(basename(ll))
-
   # Transform to ensure alignment of CRS
 
   if(terra::crs(puid_area) != terra::crs(clim.res)){
@@ -49,6 +46,11 @@ pi.climate <- function(ll, puid, all.pa, st.pa, n2k, countries, bioregion, clim.
   }
   assertthat::assert_that(crs(n2k) == crs(puid))
 
+  puid <- puid %>% mask(countries)
+  puid_area <- puid
+
+  ee <- ll %>% rast() %>% extend(puid)
+  existing_pa_names <- c(basename(ll))
 
   # stack layers
   ee <- c(ee, all.pa, st.pa, n2k)
@@ -77,6 +79,7 @@ pi.climate <- function(ll, puid, all.pa, st.pa, n2k, countries, bioregion, clim.
     ee <- ee %>% mask(ee[[1]])
   }
 
+  ee <- ee %>% mask(puid)
   #ee <- ee %>% mask(ee[[1]])
 
   clim.res <- clim.res %>% extend(puid)

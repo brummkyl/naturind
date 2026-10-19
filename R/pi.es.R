@@ -27,9 +27,6 @@ pi.es <- function(ll, puid, all.pa, st.pa, n2k, countries, bioregion, pollinatio
   rs3 <- pollination
   sp.reg.es <- capdem
 
-  ee <- ll %>% rast() %>% extend(puid)
-  existing_pa_names <- c(basename(ll))
-
   # Transform to ensure alignment of CRS, and run assertions
   if(terra::crs(puid) != terra::crs(rs3)){
     rs3 <- rs3 |> terra::project(puid)
@@ -51,6 +48,12 @@ pi.es <- function(ll, puid, all.pa, st.pa, n2k, countries, bioregion, pollinatio
     rs3 <- terra::resample(rs3,puid,method="bilinear")
   }
   assertthat::assert_that(all.equal(res(rs3), res(puid)))
+
+  puid <- puid %>% mask(countries)
+  puid_area <- puid
+
+  ee <- ll %>% rast() %>% extend(puid)
+  existing_pa_names <- c(basename(ll))
 
   ee <- c(ee, all.pa, st.pa)
   existing_pa_names <- c(existing_pa_names, "Existing all PA", "Existing strict PA")
@@ -79,6 +82,8 @@ pi.es <- function(ll, puid, all.pa, st.pa, n2k, countries, bioregion, pollinatio
     message("NA footprints differ between ee layers; masking stack to align with the first input layer...")
     ee <- ee %>% mask(ee[[1]])
   }
+
+  ee <- ee %>% mask(puid)
 
   #ee <- ee %>% mask(ee[[1]])
 
