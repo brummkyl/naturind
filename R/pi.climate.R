@@ -79,7 +79,7 @@ pi.climate <- function(ll, puid, all.pa, st.pa, n2k, countries, bioregion, clim.
     ee <- ee %>% mask(ee[[1]])
   }
 
-  ee <- ee %>% mask(puid)
+  #ee <- ee %>% mask(puid)
   #ee <- ee %>% mask(ee[[1]])
 
   clim.res <- clim.res %>% extend(puid)
