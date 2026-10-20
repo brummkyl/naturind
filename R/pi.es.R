@@ -230,7 +230,7 @@ pi.es <- function(ll, puid, all.pa, st.pa, n2k, countries, bioregion, pollinatio
     }
     assertthat::assert_that(crs(sp.es.lyr) == target_crs)
 
-    sp.es.lyr <- extend(puid)
+    sp.es.lyr <- sp.es.lyr %>% extend(puid)
     sp.es.lyr <- sp.es.lyr %>% crop(ee[[1]]) %>% mask(ee[[1]])
 
     # Wrap for parallel processing
