@@ -29,9 +29,9 @@ pi.mta(
 
 \item{puid}{A SpatRaster layer with planning units}
 
-\item{puid.num}{TBD}
+\item{puid.num}{A SpatRaster layer with unique identifiers (i.e., cell positions) for each planning unit}
 
-\item{countries}{TBD}
+\item{countries}{An sf vector layer containing individual countries}
 
 \item{all.pa}{A SpatRaster layer with all existing protected areas}
 
@@ -41,19 +41,19 @@ pi.mta(
 
 \item{feat.info}{A dataframe containing attributes for each feature. Useful for sub-setting e.g., species, habitats.}
 
-\item{rij}{TBD}
+\item{rij}{An rij matrix with features as rows and unique planning unit identifiers as columns}
 
 \item{project.name}{A character vector specifying the name of your project}
 
 \item{version}{A character vector specifying the version (e.g., date) of your workflow}
 
-\item{countries.sub}{TBD}
+\item{countries.sub}{A dataframe containing two columns: 'names' = country names; 'codes' = code names for countries}
 
-\item{countries.sub2}{TBD}
+\item{countries.sub2}{A dataframe containing two columns: 'id' as in puid.num's unique identifiers; 'names' as in countries.sub}
 
-\item{bioregion.sub}{TBD}
+\item{bioregion.sub}{A dataframe containing two columns: 'names' = region names; 'codes' = code names for regions}
 
-\item{bioregion.sub2}{TBD}
+\item{bioregion.sub2}{A dataframe containing two columns: 'id' as in puid.num's unique identifiers; 'names' as in bioregion.sub}
 
 \item{selection}{A character vector specifying which feature subsets you would like to calculate MTA for (e.g., c("species", "habitats"); "species"; "habitats")}
 
