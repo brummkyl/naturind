@@ -136,6 +136,8 @@ pi.mta <- function(ll, puid, puid.num, countries, all.pa, st.pa, n2k, feat.info 
 
   for(h in groups){
 
+    h_label <- paste(h, collapse = "_")
+
     for(i in 1:terra::nlyr(ee)) {
       pb$tick()
       pa.sol <- ee[[i]]
@@ -289,7 +291,7 @@ pi.mta <- function(ll, puid, puid.num, countries, all.pa, st.pa, n2k, feat.info 
       #if(consensus.sol == 1){
       #  ofname <- paste0(outdir.consensus, "/", "MTA/", project.name,"__", version, "__",paste0(file.name, "__indicator_MTA_",h,"_Country_Contribution_Percentages.csv"))
       #} else if (consensus.sol == 0){
-        ofname <- paste0(outdir.mta, project.name,"__", version, "__",paste0(file.name, "__indicator_MTA_",h,"_Country_Contribution_Percentages.csv"))
+        ofname <- paste0(outdir.mta, project.name,"__", version, "__",paste0(file.name, "__indicator_MTA_",h_label,"_Country_Contribution_Percentages.csv"))
       #}
 
       utils::write.csv(co.ov.mta.out.existing, ofname, row.names = FALSE)
@@ -366,7 +368,7 @@ pi.mta <- function(ll, puid, puid.num, countries, all.pa, st.pa, n2k, feat.info 
       #if(consensus.sol == 1){
       #  ofname <- paste0(outdir.consensus, "/", "MTA/", project.name,"__", version, "__", paste0(file.name, "__indicator_MTA_",h,"_Bioregion_Contribution_Percentages.csv"))
       #} else if (consensus.sol == 0){
-        ofname <- paste0(outdir.mta, project.name,"__", version, "__", paste0(file.name, "__indicator_MTA_",h,"_Bioregion_Contribution_Percentages.csv"))
+        ofname <- paste0(outdir.mta, project.name,"__", version, "__", paste0(file.name, "__indicator_MTA_",h_label,"_Bioregion_Contribution_Percentages.csv"))
       #}
 
       utils::write.csv(bi.ov.mta.out.existing, ofname, row.names = FALSE)
@@ -385,7 +387,7 @@ pi.mta <- function(ll, puid, puid.num, countries, all.pa, st.pa, n2k, feat.info 
   #if(consensus.sol == 1){
   #  ofname <- paste0(outdir.consensus, "/", project.name,"__",version, "__indicator_meantargetachievement.csv")
   #} else if (consensus.sol == 0){
-    ofname <- paste0(outdir, "/", project.name,"__",version, "__indicator_meantargetachievement.csv")
+    ofname <- paste0(outdir, "/", project.name,"__",version, "__", h_label,"__indicator_meantargetachievement.csv")
   #}
 
   utils::write.csv(out.mta.final, ofname, row.names = FALSE)
