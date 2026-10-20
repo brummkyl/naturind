@@ -47,7 +47,7 @@ pi.evp <- function(ll, puid, puid.num, countries, all.pa, st.pa, n2k, feat.info 
   p <- feat.info
   y <- rij
 
-  ee <- ll %>% rast() %>% extend(puid)
+  ee <- ll %>% rast() %>% extend(puid) %>% mask(countries)
   existing_pa_names <- c(basename(ll))
 
   if(terra::crs(puid) != terra::crs(all.pa)){
@@ -123,6 +123,8 @@ pi.evp <- function(ll, puid, puid.num, countries, all.pa, st.pa, n2k, feat.info 
       gc()
     }
   })
+
+  message(paste0("Number of planning units = ", ncol(y)))
 
   #######################################################################################
 

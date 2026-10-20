@@ -15,6 +15,8 @@
 #' @param countries.sub2 TBD
 #' @param bioregion.sub TBD
 #' @param bioregion.sub2 TBD
+#' @param selection A character vector specifying which feature subsets you would like to calculate MTA for (e.g., c("species", "habitats"); "species"; "habitats")
+#' @param separate TRUE/FALSE, indicating whether you would like to calculate MTA separately for each group specified in the 'selection' argument. e.g., If selection = c("species", "habitats") and separate = TRUE, MTA will be calculated first for species, and then separately for habitats. In this example, if separate = FALSE, then a single estimate of MTA will be calculated for the combination of species and habitats
 #'
 #' @returns A formatted .csv file saved to the "performance_outputs/version" directory
 #' @export
@@ -24,11 +26,11 @@
 #' pi.mta(ll = "C:/.../solution_file.tif", puid, puid.num, countries, all.pa,
 #'         st.pa, n2k, feat.info, rij, project.name = "Example Project",
 #'         version = "Version 1", countries.sub, countries.sub2,
-#'         bioregion.sub, bioregion.sub2)
+#'         bioregion.sub, bioregion.sub2, selection = c("species", "habitats"), separate = FALSE)
 #'}
 
 pi.mta <- function(ll, puid, puid.num, countries, all.pa, st.pa, n2k, feat.info = p, rij = y, project.name, version,
-                   countries.sub, countries.sub2, bioregion.sub, bioregion.sub2){
+                   countries.sub, countries.sub2, bioregion.sub, bioregion.sub2, selection = c("species", "habitats"), separate = FALSE){
 
   outdir <- paste0("performance_outputs/", version)
   dir.create(outdir, showWarnings = FALSE)
@@ -108,6 +110,8 @@ pi.mta <- function(ll, puid, puid.num, countries, all.pa, st.pa, n2k, feat.info 
     }
   })
 
+  message(paste0("Number of planning units = ", ncol(y)))
+
   #######################################################################################
 
   # EXISTING PROTECTED AREAS
@@ -123,7 +127,14 @@ pi.mta <- function(ll, puid, puid.num, countries, all.pa, st.pa, n2k, feat.info 
   pb <- progress::progress_bar$new(total = terra::nlyr(ee) * 2) # Here we multiply by the total length of h specified in the first loop below
 
   tictoc::tic()
-  for(h in c("species", "habitats")){
+
+  selection <- unique(selection)
+
+  # One group means process the selected types together.
+  # Multiple groups means process each selected type in its own pass.
+  groups <- if (separate) as.list(selection) else list(selection)
+
+  for(h in groups){
 
     for(i in 1:terra::nlyr(ee)) {
       pb$tick()
