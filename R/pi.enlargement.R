@@ -8,7 +8,7 @@
 #' @param variants A dataframe containing, at minimum, a column named "expand_on", which describes whether expansion priorities expand on
 #' @param countries An sf vector layer containing individual countries
 #' @param bioregion An sf vector layer containing individual biogeographic regions
-#' @param pae_threshold A numeric specifying the distance threshold used to characterize expansion areas as enlargements or new establishments
+#' @param pae_threshold A numeric specifying the distance threshold (in meters) used to characterize expansion areas as enlargements or new establishments
 #' @param project.name A character vector specifying the name of your project
 #' @param version A character vector specifying the version (e.g., date) of your workflow
 #'

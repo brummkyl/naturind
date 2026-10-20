@@ -4,7 +4,16 @@
 \alias{pi.oppcosts}
 \title{Opportunity Costs}
 \usage{
-pi.oppcosts(ll, puid, countries, bioregion, project.name, version)
+pi.oppcosts(
+  ll,
+  puid,
+  countries,
+  bioregion,
+  for.opp,
+  ag.opp,
+  project.name,
+  version
+)
 }
 \arguments{
 \item{ll}{A character vector containing file paths of raster files (e.g., spatial prioritization outputs) in '.tif' format.}
@@ -14,6 +23,10 @@ pi.oppcosts(ll, puid, countries, bioregion, project.name, version)
 \item{countries}{An sf vector layer containing individual countries}
 
 \item{bioregion}{An sf vector layer containing individual biogeographic regions}
+
+\item{for.opp}{A SpatRaster layer with opportunity costs for forestry}
+
+\item{ag.opp}{A SpatRaster layer with opportunity costs for agriculture}
 
 \item{project.name}{A character vector specifying the name of your project}
 

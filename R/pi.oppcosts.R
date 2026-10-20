@@ -4,6 +4,8 @@
 #' @param puid A SpatRaster layer with planning units
 #' @param countries An sf vector layer containing individual countries
 #' @param bioregion An sf vector layer containing individual biogeographic regions
+#' @param for.opp A SpatRaster layer with opportunity costs for forestry
+#' @param ag.opp A SpatRaster layer with opportunity costs for agriculture
 #' @param project.name A character vector specifying the name of your project
 #' @param version A character vector specifying the version (e.g., date) of your workflow
 #'
@@ -16,7 +18,7 @@
 #'              project.name = "Example Project", version = "Version 1")
 #'}
 
-pi.oppcosts <- function(ll, puid, countries, bioregion, project.name, version){
+pi.oppcosts <- function(ll, puid, countries, bioregion, for.opp, ag.opp, project.name, version){
 
   #strict <- st.pa
 

@@ -35,7 +35,7 @@ pi.enlargement(
 
 \item{bioregion}{An sf vector layer containing individual biogeographic regions}
 
-\item{pae_threshold}{A numeric specifying the distance threshold used to characterize expansion areas as enlargements or new establishments}
+\item{pae_threshold}{A numeric specifying the distance threshold (in meters) used to characterize expansion areas as enlargements or new establishments}
 
 \item{project.name}{A character vector specifying the name of your project}
 

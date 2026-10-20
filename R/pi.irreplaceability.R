@@ -30,7 +30,7 @@ pi.irreplaceability <- function(ll, puid, all.pa, st.pa, n2k, countries, bioregi
   if(terra::crs(puid) != terra::crs(beta.irr)){
     beta.irr <- beta.irr |> terra::project(puid)
   }
-  assertthat::assert_that(crs(beta.irr) == crs(puid_area))
+  assertthat::assert_that(crs(beta.irr) == crs(puid))
 
   if(terra::crs(puid) != terra::crs(all.pa)){
     all.pa <- all.pa |> terra::project(puid)

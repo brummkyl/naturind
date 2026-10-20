@@ -55,8 +55,8 @@ pi.es <- function(ll, puid, all.pa, st.pa, n2k, countries, bioregion, pollinatio
   ee <- ll %>% rast() %>% extend(puid) %>% mask(countries)
   existing_pa_names <- c(basename(ll))
 
-  ee <- c(ee, all.pa, st.pa)
-  existing_pa_names <- c(existing_pa_names, "Existing all PA", "Existing strict PA")
+  ee <- c(ee, all.pa, st.pa, n2k)
+  existing_pa_names <- c(existing_pa_names, "Existing all PA", "Existing strict PA", "Existing N2K")
 
   # Make an area grid - ha
   puid <- puid %>% mask(ee[[1]])
