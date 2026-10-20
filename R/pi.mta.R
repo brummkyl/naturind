@@ -207,7 +207,7 @@ pi.mta <- function(ll, puid, puid.num, countries, all.pa, st.pa, n2k, feat.info 
       m <- data.frame(project = paste0(project.name,"__",version),
                       scenario = file.name,
                       region = "Europe",
-                      variable = paste0("Mean target achievement (", h, ")"),
+                      variable = paste0("Mean target achievement (", h_label, ")"),
                       variable_variant = "Overall",
                       unit = "%",
                       value = mta)
@@ -255,7 +255,7 @@ pi.mta <- function(ll, puid, puid.num, countries, all.pa, st.pa, n2k, feat.info 
           n <- data.frame(project = paste0(project.name,"__",version),
                           scenario =  file.name,
                           region = paste0(as.character(countries.sub[[j,"names"]])),
-                          variable = paste0("Mean target achievement (", h, ")"),
+                          variable = paste0("Mean target achievement (", h_label, ")"),
                           variable_variant = "Region burden share",
                           unit = "%",
                           value = co.mta)
@@ -336,7 +336,7 @@ pi.mta <- function(ll, puid, puid.num, countries, all.pa, st.pa, n2k, feat.info 
           o <- data.frame(project = paste0(project.name,"__",version),
                           scenario = file.name,# " (", filtered[z],")"),
                           region = paste0(as.character(bioregion.sub[[k,"names"]])),
-                          variable = paste0("Mean target achievement (", h, ")"),
+                          variable = paste0("Mean target achievement (", h_label, ")"),
                           variable_variant = "Region burden share",
                           unit = "%",
                           value = bi.mta)
