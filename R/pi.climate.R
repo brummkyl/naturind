@@ -49,7 +49,7 @@ pi.climate <- function(ll, puid, all.pa, st.pa, n2k, countries, bioregion, clim.
   puid <- puid %>% mask(countries)
   puid_area <- puid
 
-  ee <- ll %>% rast() %>% extend(puid)
+  ee <- ll %>% rast() %>% extend(puid) %>% mask(countries)
   existing_pa_names <- c(basename(ll))
 
   # stack layers
@@ -96,6 +96,8 @@ pi.climate <- function(ll, puid, all.pa, st.pa, n2k, countries, bioregion, clim.
   clim.res.binary <- ifel(clim.res <= quant[[1]], NA, 1)
   #plot(clim.res.binary, col = "darkgreen", main = paste0("Top ", 100-(climate.quantile*100), "% climate resilience"), ext = ext(clim.res.binary)*1.1)
 
+  message(paste0("Number of planning units in solution files = ", sum(!is.na(values(ee[[1]])))))
+  message(paste0("Number of planning units in puid file = ", sum(!is.na(values(puid)))))
 
   #######################################################################################
 

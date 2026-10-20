@@ -2,19 +2,19 @@
 #'
 #' @param ll A character vector containing file paths of raster files (e.g., spatial prioritization outputs) in '.tif' format.
 #' @param puid A SpatRaster layer with planning units
-#' @param puid.num TBD
-#' @param countries TBD
+#' @param puid.num A SpatRaster layer with unique identifiers (i.e., cell positions) for each planning unit
+#' @param countries An sf vector layer containing individual countries
 #' @param all.pa A SpatRaster layer with all existing protected areas
 #' @param st.pa A SpatRaster layer with all existing strict protected areas
 #' @param n2k A SpatRaster layer with all existing Natura 2000 protected areas (or any other unique subset of PAs)
 #' @param feat.info A dataframe containing attributes for each feature. Useful for sub-setting e.g., species, habitats.
-#' @param rij TBD
+#' @param rij An rij matrix with features as rows and unique planning unit identifiers as columns
 #' @param project.name A character vector specifying the name of your project
 #' @param version A character vector specifying the version (e.g., date) of your workflow
-#' @param countries.sub TBD
-#' @param countries.sub2 TBD
-#' @param bioregion.sub TBD
-#' @param bioregion.sub2 TBD
+#' @param countries.sub A dataframe containing two columns: 'names' = country names; 'codes' = code names for countries
+#' @param countries.sub2 A dataframe containing two columns: 'id' as in puid.num's unique identifiers; 'names' as in countries.sub
+#' @param bioregion.sub A dataframe containing two columns: 'names' = region names; 'codes' = code names for regions
+#' @param bioregion.sub2 A dataframe containing two columns: 'id' as in puid.num's unique identifiers; 'names' as in bioregion.sub
 #' @param selection A character vector specifying which feature subsets you would like to calculate MTA for (e.g., c("species", "habitats"); "species"; "habitats")
 #' @param separate TRUE/FALSE, indicating whether you would like to calculate MTA separately for each group specified in the 'selection' argument. e.g., If selection = c("species", "habitats") and separate = TRUE, MTA will be calculated first for species, and then separately for habitats. In this example, if separate = FALSE, then a single estimate of MTA will be calculated for the combination of species and habitats
 #'

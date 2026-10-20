@@ -50,7 +50,7 @@ pi.irreplaceability <- function(ll, puid, all.pa, st.pa, n2k, countries, bioregi
   puid <- puid %>% mask(countries)
   puid_area <- puid
 
-  ee <- ll %>% rast() %>% extend(puid)
+  ee <- ll %>% rast() %>% extend(puid) %>% mask(countries)
   existing_pa_names <- c(basename(ll))
 
   # stack layers
@@ -80,7 +80,7 @@ pi.irreplaceability <- function(ll, puid, all.pa, st.pa, n2k, countries, bioregi
     ee <- ee %>% mask(ee[[1]])
   }
 
-  ee <- ee %>% mask(puid)
+  #ee <- ee %>% mask(puid)
   #ee <- ee %>% mask(ee[[1]])
 
   beta.irr <- beta.irr %>% extend(puid) %>% crop(ee[[1]]) %>% mask(ee[[1]])
@@ -95,6 +95,10 @@ pi.irreplaceability <- function(ll, puid, all.pa, st.pa, n2k, countries, bioregi
   # extract any given quantile from the beta irreplaceability layer, and then convert this to a binary format
   quant <- global(beta.irr, \(i) quantile(i, irr.quantile, na.rm=T))
   beta.irr.binary <- ifel(beta.irr <= quant[[1]], NA, 1)
+
+  message(paste0("Number of planning units in solution files = ", sum(!is.na(values(ee[[1]])))))
+  message(paste0("Number of planning units in puid file = ", sum(!is.na(values(puid)))))
+  message(paste0("Number of planning units in irreplaceability file = ", sum(!is.na(values(puid)))))
 
   #######################################################################################
 

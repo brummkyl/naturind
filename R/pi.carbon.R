@@ -57,7 +57,7 @@ pi.carbon <- function(ll, puid, all.pa, st.pa, n2k, countries, bioregion, carbon
   puid <- puid %>% mask(countries)
   puid_area <- puid
 
-  ee <- ll %>% rast() %>% extend(puid)
+  ee <- ll %>% rast() %>% extend(puid) %>% mask(countries)
   existing_pa_names <- c(basename(ll))
 
   # stack layers
@@ -88,7 +88,7 @@ pi.carbon <- function(ll, puid, all.pa, st.pa, n2k, countries, bioregion, carbon
     ee <- ee %>% mask(ee[[1]])
   }
 
-  ee <- ee %>% mask(puid)
+  #ee <- ee %>% mask(puid)
   #ee <- ee %>% mask(ee[[1]])
 
   carbon <- carbon %>% mask(ee[[1]])
@@ -108,6 +108,9 @@ pi.carbon <- function(ll, puid, all.pa, st.pa, n2k, countries, bioregion, carbon
 
   # for this indicator, we only consider areas in which carbon sequestration is positive
   carbon.seq <- ifel(carbon.seq < 0, 0, carbon.seq)
+
+  message(paste0("Number of planning units in solution files = ", sum(!is.na(values(ee[[1]])))))
+  message(paste0("Number of planning units in puid file = ", sum(!is.na(values(puid)))))
 
   #######################################################################################
 

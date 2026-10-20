@@ -52,7 +52,7 @@ pi.es <- function(ll, puid, all.pa, st.pa, n2k, countries, bioregion, pollinatio
   puid <- puid %>% mask(countries)
   puid_area <- puid
 
-  ee <- ll %>% rast() %>% extend(puid)
+  ee <- ll %>% rast() %>% extend(puid) %>% mask(countries)
   existing_pa_names <- c(basename(ll))
 
   ee <- c(ee, all.pa, st.pa)
@@ -83,7 +83,10 @@ pi.es <- function(ll, puid, all.pa, st.pa, n2k, countries, bioregion, pollinatio
     ee <- ee %>% mask(ee[[1]])
   }
 
-  ee <- ee %>% mask(puid)
+  #ee <- ee %>% mask(puid)
+
+  message(paste0("Number of planning units in solution files = ", sum(!is.na(values(ee[[1]])))))
+  message(paste0("Number of planning units in puid file = ", sum(!is.na(values(puid)))))
 
   #ee <- ee %>% mask(ee[[1]])
 

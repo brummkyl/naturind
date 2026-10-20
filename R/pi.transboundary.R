@@ -23,7 +23,7 @@
 
 pi.transboundary <- function(ll, puid, all.pa, st.pa, n2k, countries, bioregion, tb.buffers, project.name, version){
 
-  ee <- ll %>% rast() %>% extend(puid)
+  ee <- ll %>% rast() %>% extend(puid) %>% mask(countries)
   existing_pa_names <- c(basename(ll))
 
   # Transform to ensure alignment of CRS, and run assertions
@@ -73,6 +73,9 @@ pi.transboundary <- function(ll, puid, all.pa, st.pa, n2k, countries, bioregion,
     message("NA footprints differ between ee layers; masking stack to align with the first input layer...")
     ee <- ee %>% mask(ee[[1]])
   }
+
+  message(paste0("Number of planning units in solution files = ", sum(!is.na(values(ee[[1]])))))
+  message(paste0("Number of planning units in puid file = ", sum(!is.na(values(puid)))))
 
   #######################################################################################
 

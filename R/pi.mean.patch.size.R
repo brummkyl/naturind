@@ -44,7 +44,7 @@ pi.mean.patch.size <- function(ll, puid, all.pa, st.pa, n2k, countries, bioregio
   puid <- puid %>% mask(countries)
   puid_area <- puid
 
-  ee <- ll %>% rast() %>% extend(puid)
+  ee <- ll %>% rast() %>% extend(puid) %>% mask(countries)
   existing_pa_names <- c(basename(ll))
 
   # stack layers
@@ -72,7 +72,10 @@ pi.mean.patch.size <- function(ll, puid, all.pa, st.pa, n2k, countries, bioregio
   }
   #ee <- list(all.pa, st.pa, n2k)
   #ee <- rast(ll) %>% mask(countries)
-  ee <- ee %>% mask(puid)
+  #ee <- ee %>% mask(puid)
+
+  message(paste0("Number of planning units in solution files = ", sum(!is.na(values(ee[[1]])))))
+  message(paste0("Number of planning units in puid file = ", sum(!is.na(values(puid)))))
 
   # calculations
 
