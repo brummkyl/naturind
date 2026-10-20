@@ -118,21 +118,22 @@ pi.mta <- function(ll, puid, puid.num, countries, all.pa, st.pa, n2k, feat.info 
 
   #######################################################################################
 
+  selection <- unique(selection)
+  n_passes <- if (separate) length(selection) else 1L
+
+  # One group means process the selected types together.
+  # Multiple groups means process each selected type in its own pass.
+  groups <- if (separate) as.list(selection) else list(selection)
+
   # Initialize output containers
   mta.out.existing <- data.frame()
   co.ov.mta.out.existing <- data.frame()
   bi.ov.mta.out.existing <- data.frame()
   co.mta.out.existing <- data.frame()
   bi.mta.out.existing <- data.frame()
-  pb <- progress::progress_bar$new(total = terra::nlyr(ee) * 2) # Here we multiply by the total length of h specified in the first loop below
+  pb <- progress::progress_bar$new(total = terra::nlyr(ee) * n_passes) # Here we multiply by the total length of h specified in the first loop below, depending on whether separate = TRUE or FALSE
 
   tictoc::tic()
-
-  selection <- unique(selection)
-
-  # One group means process the selected types together.
-  # Multiple groups means process each selected type in its own pass.
-  groups <- if (separate) as.list(selection) else list(selection)
 
   for(h in groups){
 
