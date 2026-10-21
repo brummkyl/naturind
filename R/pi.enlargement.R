@@ -60,7 +60,7 @@ pi.enlargement <- function(ll, puid, all.pa, st.pa, n2k,
     manh_rl <- gdistance::accCost(tr, pa_xy)
     manh_sr <- terra::rast(manh_rl)
     manh_sr[!is.finite(manh_sr)] <- NA
-    plot(manh_sr)
+    #plot(manh_sr)
 
     # align CRS with that of planning units
     terra::crs(manh_sr) <- terra::crs(puid)
@@ -107,7 +107,7 @@ pi.enlargement <- function(ll, puid, all.pa, st.pa, n2k,
     manh_rl <- gdistance::accCost(tr, pa_xy)
     manh_sr <- terra::rast(manh_rl)
     manh_sr[!is.finite(manh_sr)] <- NA
-    plot(manh_sr)
+    #plot(manh_sr)
 
     # align CRS with that of planning units
     terra::crs(manh_sr) <- terra::crs(puid)
