@@ -1,13 +1,14 @@
 #' Protected Area Enlargement
 #'
-#' @param ll A character vector containing file paths of raster files (e.g., spatial prioritization outputs) in '.tif' format.
+#' @param ll A character vector containing file paths of raster files (e.g., spatial prioritization outputs) in '.tif' format. This layer should contain the full solution (expansion priorities + existing protected areas), not just the expansion priorities.
 #' @param puid A SpatRaster layer with planning units
 #' @param all.pa A SpatRaster layer with all existing protected areas
 #' @param st.pa A SpatRaster layer with all existing strict protected areas
 #' @param n2k A SpatRaster layer with all existing Natura 2000 protected areas (or any other unique subset of PAs)
-#' @param variants A dataframe containing, at minimum, a column named "expand_on", which describes whether expansion priorities expand on
 #' @param countries An sf vector layer containing individual countries
 #' @param bioregion An sf vector layer containing individual biogeographic regions
+#' @param pa.ref A character string specifying which protected area raster should be used as the baseline reference layer when calculating Queen's distances
+#' @param strict TRUE/FALSE, specifying whether your ll files represent strict expansion priorities
 #' @param pae_threshold A numeric specifying the distance threshold (in meters) used to characterize expansion areas as enlargements or new establishments
 #' @param project.name A character vector specifying the name of your project
 #' @param version A character vector specifying the version (e.g., date) of your workflow
@@ -18,21 +19,26 @@
 #' @examples
 #' \dontrun{
 #' pi.enlargement(ll = "C:/.../solution_file.tif", puid, all.pa, st.pa, n2k, variants,
-#'                 countries, bioregion, pae_threshold, project.name = "Example Project",
+#'                 countries, bioregion, pa.ref = "all.pa", strict = FALSE, pae_threshold, project.name = "Example Project",
 #'                 version = "Version 1")
 #'}
 
-pi.enlargement <- function(ll, puid, all.pa, st.pa, n2k, variants,
-                           countries, bioregion, pae_threshold, project.name, version){
+pi.enlargement <- function(ll, puid, all.pa, st.pa, n2k,
+                           countries, bioregion, pa.ref = "all.pa", strict = FALSE,
+                           pae_threshold, project.name, version){
 
 
+  puid <- puid %>% mask(countries)
   # Script for calculating Queen's distance transition layers (i.e., how far away is each PU from the nearest PA?)
 
   # Create a raster of distances expressing location of PUs relative to existing PAs
   # NOTE: Distances only need to be recalculated when using a different or recently updated PA layer
 
   # Calculation of the raster quantifying distances from each PU to its nearest PA - all PAs
-  {
+  if (pa.ref == "all.pa"){
+
+    message(paste0("Calculating Queen's distances based on layer: ", pa.ref))
+
     all.pa.bi <- ifel(all.pa > 0, 1, 0)
     # check that protected areas exist
     if (terra::global(all.pa.bi > 0, "sum", na.rm = TRUE)[1, 1] == 0) {
@@ -64,10 +70,22 @@ pi.enlargement <- function(ll, puid, all.pa, st.pa, n2k, variants,
     mh.all <- manh_sr
     mh.strict.all <- manh_sr
 
-  }
+    # Check CRS of distance rasters
+    if(terra::crs(puid) != terra::crs(mh.all)){
+      mh.all <- mh.all |> terra::project(puid)
+    }
+    assertthat::assert_that(crs(puid) == crs(mh.all))
+
+    if(terra::crs(puid) != terra::crs(mh.strict.all)){
+      mh.strict.all <- mh.strict.all |> terra::project(puid)
+    }
+    assertthat::assert_that(crs(puid) == crs(mh.strict.all))
+
+  } else if (pa.ref == "n2k"){
 
   # Calculation of the raster quantifying distances from each PU to its nearest PA - N2K only
-  {
+    message(paste0("Calculating Queen's distances based on layer: ", pa.ref))
+
     n2k.bi <- ifel(n2k > 0, 1, 0)
     # check that protected areas exist
     if (terra::global(n2k.bi > 0, "sum", na.rm = TRUE)[1, 1] == 0) {
@@ -99,41 +117,54 @@ pi.enlargement <- function(ll, puid, all.pa, st.pa, n2k, variants,
     mh.n2k <- manh_sr
     mh.strict.n2k <- manh_sr
 
+    if(terra::crs(puid) != terra::crs(mh.n2k)){
+      mh.n2k <- mh.n2k |> terra::project(puid)
+    }
+    assertthat::assert_that(crs(puid) == crs(mh.n2k))
+
+    if(terra::crs(puid) != terra::crs(mh.strict.n2k)){
+      mh.strict.n2k <- mh.strict.n2k |> terra::project(puid)
+    }
+    assertthat::assert_that(crs(puid) == crs(mh.strict.n2k))
+
   }
 
+
+
+
   # Calculation of the raster quantifying distances from each PU to its nearest PA - Strict-all PAs only
-  {
-    strict_all.bi <- ifel(st.pa > 0, 1, 0)
-    # check that protected areas exist
-    if (terra::global(strict_all.bi > 0, "sum", na.rm = TRUE)[1, 1] == 0) {
-      stop("No PA cells found in `strict_all.bi`.")
-    }
-
-    # build an 8-neighbor TransitionLayer with a uniform movement cost (= cellsize)
-    # this is the "queen" neighborhood approach (compared to directions = 4 as "rook" neighborhood)
-    base_r <- raster::raster(puid)
-    tr <- gdistance::transition(base_r, function(x) 1, directions = 8)
-    tr <- gdistance::geoCorrection(tr, type = "c", multpl = FALSE)
-
-    # extract coordinates of all protected area cells
-    pa_cells <- which(terra::values(strict_all.bi) > 0)
-    pa_xy <- raster::xyFromCell(base_r, pa_cells)
-
-    # accumulated cost (Queen accumulated cost distance) to nearest PA
-    # in map units (meters)
-    manh_rl <- gdistance::accCost(tr, pa_xy)
-    manh_sr <- terra::rast(manh_rl)
-    manh_sr[!is.finite(manh_sr)] <- NA
-    plot(manh_sr)
-
-    # align CRS with that of planning units
-    terra::crs(manh_sr) <- terra::crs(puid)
-    assertthat::assert_that(terra::crs(puid) == terra::crs(manh_sr))
+  # {
+  #   strict_all.bi <- ifel(st.pa > 0, 1, 0)
+  #   # check that protected areas exist
+  #   if (terra::global(strict_all.bi > 0, "sum", na.rm = TRUE)[1, 1] == 0) {
+  #     stop("No PA cells found in `strict_all.bi`.")
+  #   }
+  #
+  #   # build an 8-neighbor TransitionLayer with a uniform movement cost (= cellsize)
+  #   # this is the "queen" neighborhood approach (compared to directions = 4 as "rook" neighborhood)
+  #   base_r <- raster::raster(puid)
+  #   tr <- gdistance::transition(base_r, function(x) 1, directions = 8)
+  #   tr <- gdistance::geoCorrection(tr, type = "c", multpl = FALSE)
+  #
+  #   # extract coordinates of all protected area cells
+  #   pa_cells <- which(terra::values(strict_all.bi) > 0)
+  #   pa_xy <- raster::xyFromCell(base_r, pa_cells)
+  #
+  #   # accumulated cost (Queen accumulated cost distance) to nearest PA
+  #   # in map units (meters)
+  #   manh_rl <- gdistance::accCost(tr, pa_xy)
+  #   manh_sr <- terra::rast(manh_rl)
+  #   manh_sr[!is.finite(manh_sr)] <- NA
+  #   plot(manh_sr)
+  #
+  #   # align CRS with that of planning units
+  #   terra::crs(manh_sr) <- terra::crs(puid)
+  #   assertthat::assert_that(terra::crs(puid) == terra::crs(manh_sr))
     #ofname <- paste0(path_input, "QueenDistances_Strict_all_",grain,".tif")
     #writeRaster(manh_sr, ofname, overwrite=T)
     #mh.strict.all <- manh_sr
     #mh.strict.n2k <- manh_sr
-  }
+  #}
 
   # # Calculation of the raster quantifying distances from each PU to its nearest PA - Strict-n2k PAs only
   # {
@@ -189,26 +220,6 @@ pi.enlargement <- function(ll, puid, all.pa, st.pa, n2k, variants,
   # }
   # assertthat::assert_that(crs(puid) == crs(strict_n2k_base))
 
-  # Check CRS of distance rasters
-  if(terra::crs(puid) != terra::crs(mh.all)){
-    mh.all <- mh.all |> terra::project(puid)
-  }
-  assertthat::assert_that(crs(puid) == crs(mh.all))
-
-  if(terra::crs(puid) != terra::crs(mh.n2k)){
-    mh.n2k <- mh.n2k |> terra::project(puid)
-  }
-  assertthat::assert_that(crs(puid) == crs(mh.n2k))
-
-  if(terra::crs(puid) != terra::crs(mh.strict.all)){
-    mh.strict.all <- mh.strict.all |> terra::project(puid)
-  }
-  assertthat::assert_that(crs(puid) == crs(mh.strict.all))
-
-  if(terra::crs(puid) != terra::crs(mh.strict.n2k)){
-    mh.strict.n2k <- mh.strict.n2k |> terra::project(puid)
-  }
-  assertthat::assert_that(crs(puid) == crs(mh.strict.n2k))
 
   # Bioregion and Country Summaries
   out.europe <- data.frame()
@@ -221,17 +232,18 @@ pi.enlargement <- function(ll, puid, all.pa, st.pa, n2k, variants,
   for (i in 1:length(ll)) {
     pb$tick()
 
-    ll_base <- file_path_sans_ext(basename(ll[i]))  # strip extension only
-
-    # find which basematch values are a prefix of ll_base
-    is_match <- mapply(function(bm) {
-      grepl(paste0("^", bm, "($|_)"), ll_base)
-    }, variants$basematch)
-
-    match_idx <- which(is_match)
+    # ll_base <- file_path_sans_ext(basename(ll[i]))  # strip extension only
+    #
+    # # find which basematch values are a prefix of ll_base
+    # is_match <- mapply(function(bm) {
+    #   grepl(paste0("^", bm, "($|_)"), ll_base)
+    # }, variants$basematch)
+    #
+    # match_idx <- which(is_match)
 
     # here this is the full solution (expansion priorities are back-calculated below)
-    pa.sol <- paste0(ll[[i]]) %>% terra::rast()
+    # 10/21/2026 Users should provide expansion areas only, and define pa.ref and strict = TRUE/FALSE
+    pa.sol <- paste0(ll[[i]]) %>% terra::rast() %>% mask(countries)
     # area selected in solution
 
     puid <- puid %>% mask(pa.sol)
@@ -242,13 +254,9 @@ pi.enlargement <- function(ll, puid, all.pa, st.pa, n2k, variants,
     n2k <- n2k %>% mask(pa.sol)
 
     #all_base <- all_base %>% mask(pa.sol)
-    mh.all <- mh.all %>% mask(pa.sol)
     #strict_all_base <- strict_all_base %>% mask(pa.sol)
-    mh.strict.all <- mh.strict.all %>% mask(pa.sol)
     #strict_n2k_base <- strict_n2k_base %>% mask(pa.sol)
-    mh.strict.n2k <- mh.strict.n2k %>% mask(pa.sol)
     #n2k_base <- n2k_base %>% mask(pa.sol)
-    mh.n2k <- mh.n2k %>% mask(pa.sol)
 
     # SET PARAMETERS
 
@@ -265,61 +273,123 @@ pi.enlargement <- function(ll, puid, all.pa, st.pa, n2k, variants,
     #     mh <- mh.strict.all
     #   }
     #if(consensus.sol == 0){
-      if (variants$expand_on[match_idx] == "all" && !grepl("strict", basename(ll[[i]]), ignore.case = TRUE)){ #grepl("all", basename(ll[[i]]), ignore.case = TRUE) && !grepl("strict", basename(ll[[i]]), ignore.case = TRUE)) {
+      if (pa.ref == "all.pa" && strict == FALSE){ #grepl("all", basename(ll[[i]]), ignore.case = TRUE) && !grepl("strict", basename(ll[[i]]), ignore.case = TRUE)) {
         pa = all.pa
+        mh.all <- mh.all %>% mask(pa.sol)
         mh = mh.all
         #var.variant = "All"
-      } else if (variants$expand_on[match_idx] == "N2K" && !grepl("strict", basename(ll[[i]]), ignore.case = TRUE)){ #grepl("N2K", basename(ll[[i]]), ignore.case = TRUE) && !grepl("strict", basename(ll[[i]]), ignore.case = TRUE)) {
+      } else if (pa.ref == "n2k" && strict == FALSE){ #grepl("N2K", basename(ll[[i]]), ignore.case = TRUE) && !grepl("strict", basename(ll[[i]]), ignore.case = TRUE)) {
         pa = n2k
+        mh.n2k <- mh.n2k %>% mask(pa.sol)
         mh = mh.n2k
         #var.variant = "N2K"
-      } else if (variants$expand_on[match_idx] == "all" && grepl("strict", basename(ll[[i]]), ignore.case = TRUE)){ #grepl("all", basename(ll[[i]]), ignore.case = TRUE) && grepl("strict", basename(ll[[i]]), ignore.case = TRUE)) {
+      } else if (pa.ref == "all.pa" && strict == TRUE){
         pa = st.pa
+        mh.strict.all <- mh.strict.all %>% mask(pa.sol)
         mh = mh.strict.all
-        #var.variant = "Strict"
-      } else if (variants$expand_on[match_idx] == "N2K" && grepl("strict", basename(ll[[i]]), ignore.case = TRUE)){ #grepl("N2K", basename(ll[[i]]), ignore.case = TRUE) && grepl("strict", basename(ll[[i]]), ignore.case = TRUE)) {
+      } else if (pa.ref == "n2k" && strict == TRUE){
         pa = st.pa
+        mh.strict.n2k <- mh.strict.n2k %>% mask(pa.sol)
         mh = mh.strict.n2k
-        #var.variant = "Strict"
       }
+
+      # } else if (variants$expand_on[match_idx] == "all" && grepl("strict", basename(ll[[i]]), ignore.case = TRUE)){ #grepl("all", basename(ll[[i]]), ignore.case = TRUE) && grepl("strict", basename(ll[[i]]), ignore.case = TRUE)) {
+      #   pa = st.pa
+      #   mh = mh.strict.all
+      #   #var.variant = "Strict"
+      # } else if (variants$expand_on[match_idx] == "N2K" && grepl("strict", basename(ll[[i]]), ignore.case = TRUE)){ #grepl("N2K", basename(ll[[i]]), ignore.case = TRUE) && grepl("strict", basename(ll[[i]]), ignore.case = TRUE)) {
+      #   pa = st.pa
+      #   mh = mh.strict.n2k
+      #   #var.variant = "Strict"
+      # }
     #}
+    # pa.sol is the full final solution; pa is the reference PA layer.
+    # Both should be aligned and use proportional coverage values from 0 to 1.
+    baseline <- pa
+    out <- baseline
+    final <- pa.sol
 
-    pa.sol.area <- pa.sol #* puid_area
-    ov.sol.full <- ifel(pa.sol.area + pa > 1, 1, pa.sol.area + pa)
-    ov.sol.area <- global(ov.sol.full,"sum",na.rm=TRUE)
+    # Keep only gains as selected area; preserve fractional cell values.
+    sol <- terra::ifel(final > baseline, final - baseline, 0)
 
-    # GLOBAL CALCULATIONS
+    # Keep losses separately if you want to report them.
+    loss <- terra::ifel(baseline > final, baseline - final, 0)
 
-    # area of existing PAs
-    out <- pa #* puid_area
-    out.europe.sum <- global(out,"sum",na.rm=TRUE)[[1]]
+    # The final solution already includes the baseline.
+    ov.sol.full <- final
+    ov.sol.area <- terra::global(ov.sol.full, "sum", na.rm = TRUE)
 
-    # 0 = (!selected AND !protected) | (proportion selected = proportion protected),
-    # which in either case, does not represent an expansion or a new PA establishment.
-    # values > 0 represent either expansion of existing PA | establishment of new PA
-    sol <- pa.sol #- pa
-    # reclassify to retain instances of PA expansion | establishment only
-    sol <- ifel(sol > 0, sol, 0) #* puid_area
-    # total expansion area for solution across all of Europe
-    exp.sol.europe <- global(sol,"sum",na.rm=TRUE)[[1]]
+    # Denominator for "Expansion area in region":
+    # all selected gains, including both expansion and establishment.
+    exp.sol.europe <- terra::global(sol, "sum", na.rm = TRUE)[[1]]
 
-    # we can use our Queen distance rasters to filter and differentiate between cases of expansion vs. establishment of a new PA
-    # for this we rely on our pae threshold defined in parameter settings
-    # here, values of 1 will count as an expansion
-    # catching NAs here to ensure correct  of new PA establishments on isolated islands
-    pae.expansion <- ifel(!is.na(mh) & mh <= pae_threshold, 1, 0)
-    # here, values of 1 will count as a newly established PA
-    pae.estab <- ifel(is.na(mh) | mh > pae_threshold, 1, 0)
+    # Find connected patches among gain cells. Proportions remain in `sol`;
+    # this binary raster is only for connectivity.
+    patch_id <- terra::patches(
+      terra::ifel(sol > 0, 1, NA),
+      directions = 8,
+      zeroAsNA = TRUE
+    )
 
-    # mask to quantify selected pa expansions
+    # A patch qualifies if any of its cells is within pae_threshold of the
+    # reference PA raster selected above.
+    near_pa <- !is.na(mh) & mh <= pae_threshold
+    patch_values <- terra::values(patch_id, mat = FALSE)
+    near_values <- terra::values(near_pa, mat = FALSE)
+
+    expansion_patch_ids <- unique(
+      patch_values[near_values & !is.na(patch_values)]
+    )
+
+    # Apply the patch classification while retaining fractional values in `sol`.
+    if (length(expansion_patch_ids) == 0) {
+      pae.expansion <- terra::ifel(!is.na(patch_id), 0, 0)
+    } else {
+      pae.expansion <- terra::app(
+        patch_id,
+        fun = function(x) as.integer(!is.na(x) & x %in% expansion_patch_ids)
+      )
+    }
+    pae.estab <- terra::ifel(pae.expansion == 1, 0, 1)
+
+    # These retain the original proportional gain values.
     sol.expansion <- sol * pae.expansion
-    # mask to quantify selected pa establishments
     sol.estab <- sol * pae.estab
+    #
+    # # Find which patches contain at least one cell within the existing PA threshold.
+    # near_pa <- !is.na(mh) & mh <= pae_threshold
+    # patch_values <- terra::values(patch_id, mat = FALSE)
+    # near_values  <- terra::values(near_pa, mat = FALSE)
+    #
+    # expansion_patch_ids <- unique(patch_values[near_values & !is.na(patch_values)])
+    #
+    # # Mark every selected cell in those patches as expansion.
+    # pae.expansion <- terra::ifel(patch_id %in% expansion_patch_ids, 1, 0)
+    # pae.estab <- terra::ifel(pae.expansion == 1, 0, 1)
+    # #
+    # # # reclassify to retain instances of PA expansion | establishment only
+    # # sol <- ifel(sol > 0, sol, 0) #* puid_area
+    # # # total expansion area for solution across all of Europe
+    # # exp.sol.europe <- global(sol,"sum",na.rm=TRUE)[[1]]
+    # #
+    # # # we can use our Queen distance rasters to filter and differentiate between cases of expansion vs. establishment of a new PA
+    # # # for this we rely on our pae threshold defined in parameter settings
+    # # # here, values of 1 will count as an expansion
+    # # # catching NAs here to ensure correct  of new PA establishments on isolated islands
+    # # pae.expansion <- ifel(!is.na(mh) & mh <= pae_threshold, 1, 0)
+    # # # here, values of 1 will count as a newly established PA
+    # # pae.estab <- ifel(is.na(mh) | mh > pae_threshold, 1, 0)
+    #
+    # # mask to quantify selected pa expansions
+    # sol.expansion <- sol * pae.expansion
+    # # mask to quantify selected pa establishments
+    # sol.estab <- sol * pae.estab
 
     # normalized by proportion of total solution area, including area of existing PAs
     sol.expansion.europe <- (global(sol.expansion,"sum",na.rm=TRUE)/ov.sol.area[[1]])[[1]]
     sol.estab.europe <- (global(sol.estab,"sum",na.rm=TRUE)/ov.sol.area[[1]])[[1]]
     sol.exist.europe <- (global(out,"sum",na.rm=TRUE)/ov.sol.area[[1]])[[1]]
+    loss.europe <- (global(loss,"sum",na.rm=TRUE)/ov.sol.area[[1]])[[1]]
 
     # normalized by proportion of expansion area
     sol.expansion.europe.exp <- (global(sol.expansion,"sum",na.rm=TRUE)/exp.sol.europe)[[1]]
@@ -328,7 +398,7 @@ pi.enlargement <- function(ll, puid, all.pa, st.pa, n2k, variants,
     # Check that expansion, establishment, and existing add up to 100% of solution area
     total.fraction <- sum(c(sol.expansion.europe,
                             sol.estab.europe,
-                            sol.exist.europe), na.rm = TRUE)
+                            sol.exist.europe), na.rm = TRUE) - loss.europe
     assertthat::assert_that(abs(total.fraction - 1) < 1e-2)
 
     # and that expansion and establishment, when normalized by total expansion area, add up to 100% of the expansion area
@@ -369,7 +439,7 @@ pi.enlargement <- function(ll, puid, all.pa, st.pa, n2k, variants,
       region1 <- bioregion[j,] %>% sf::st_make_valid()
 
       # calculate solution area for normalization
-      sol.area.full <- ifel(pa.sol.area + pa > 1, 1, pa.sol.area + pa)
+      sol.area.full <- ov.sol.full
 
       sol.area <- exactextractr::exact_extract(sol.area.full, region1, fun="sum")
       exp.area <- exactextractr::exact_extract(sol, region1, fun="sum")
@@ -385,11 +455,13 @@ pi.enlargement <- function(ll, puid, all.pa, st.pa, n2k, variants,
 
         # percent of current PAs
         out.region <- exactextractr::exact_extract(out, region1, fun="sum") / sol.area
+        loss.region <- exactextractr::exact_extract(loss, region1, fun = "sum") / sol.area
+
         # check that the sum of PA expansion, PA establishments, and existing PAs is effectively 1
         # here we allow some room in case of rounding errors
         total.fraction <- sum(c(sol.expansion.region,
                                 sol.estab.region,
-                                out.region), na.rm = TRUE)
+                                out.region), na.rm = TRUE) - loss.region
         assertthat::assert_that(abs(total.fraction - 1) < 1e-2)
 
         # and that expansion and establishment, when normalized by total expansion area, add up to 100% of the expansion area
@@ -445,7 +517,7 @@ pi.enlargement <- function(ll, puid, all.pa, st.pa, n2k, variants,
       region1 <- countries[j,] %>% sf::st_make_valid()
 
       # calculate solution area for normalization
-      sol.area.full <- ifel(pa.sol.area + pa > 1, 1, pa.sol.area + pa)
+      sol.area.full <- ov.sol.full
 
       sol.area <- exactextractr::exact_extract(sol.area.full, region1, fun="sum")
       exp.area <- exactextractr::exact_extract(sol, region1, fun="sum")
@@ -461,11 +533,13 @@ pi.enlargement <- function(ll, puid, all.pa, st.pa, n2k, variants,
 
         # percent of current PAs
         out.region <- exactextractr::exact_extract(out, region1, fun="sum") / sol.area
+        loss.region <- exactextractr::exact_extract(loss, region1, fun = "sum") / sol.area
+
         # check that the sum of PA expansion, PA establishments, and existing PAs is effectively 1
         # here we allow some room in case of rounding errors
         total.fraction <- sum(c(sol.expansion.region,
                                 sol.estab.region,
-                                out.region), na.rm = TRUE)
+                                out.region), na.rm = TRUE) - loss.region
         assertthat::assert_that(abs(total.fraction - 1) < 1e-2)
 
         # and that expansion and establishment, when normalized by total expansion area, add up to 100% of the expansion area
