@@ -17,11 +17,11 @@
 #' @examples
 #' \dontrun{
 #' pi.mean.patch.size(ll = "C:/.../solution_file.tif", puid, all.pa, st.pa, n2k, countries, bioregion,
-#'                     threshold = 0.5, project.name = "Example Project",
+#'                     threshold = 0, project.name = "Example Project",
 #'                     version = "Version 1")
 #'}
 
-pi.mean.patch.size <- function(ll, puid, all.pa, st.pa, n2k, countries, bioregion, threshold = prop_binary_thresh, project.name, version){
+pi.mean.patch.size <- function(ll, puid, all.pa, st.pa, n2k, countries, bioregion, threshold = 0, project.name, version){
 
   prop_binary_thresh <- threshold
 
@@ -88,15 +88,42 @@ pi.mean.patch.size <- function(ll, puid, all.pa, st.pa, n2k, countries, bioregio
   for (i in 1:nlyr(ee)) {
     pb$tick()
     # loop through the solution rasters
-    pa.sol <- ee[[i]]
+    pa.sol_prop <- ee[[i]]
     file.name <- existing_pa_names[[i]]
 
-    pa.sol <- ifel(pa.sol>prop_binary_thresh, 1, NA)
-    pa.patches <- patches(pa.sol, directions = 8, zeroAsNA = FALSE, allowGaps = TRUE)
+    # Use the threshold only to decide which cells belong to a patch
+    patch_mask <- terra::ifel(pa.sol_prop > prop_binary_thresh, 1, NA)
 
-    patch.areas <- expanse(pa.patches, unit = "km", byValue = TRUE)
-    median.patch.size <- median(patch.areas$area, na.rm=T)
-    mean.patch.size <- mean(patch.areas$area, na.rm=T)
+    pa.patches <- terra::patches(
+      patch_mask,
+      directions = 8,
+      zeroAsNA = TRUE,
+      allowGaps = TRUE
+    )
+
+    # Weight each cell's area by its proportional coverage
+    #cell_area_km2 <- terra::cellSize(pa.sol_prop, unit = "km")
+    area_km2 <- pa.sol_prop #* cell_area_km2
+    names(area_km2) <- "area_km2"
+
+    # Sum proportional area within each patch
+    patch.areas <- terra::zonal(
+      area_km2,
+      pa.patches,
+      fun = "sum",
+      na.rm = TRUE
+    )
+
+    median.patch.size <- median(patch.areas$area_km2, na.rm = TRUE)
+    mean.patch.size <- mean(patch.areas$area_km2, na.rm = TRUE)
+
+    #
+    # pa.sol <- ifel(pa.sol>prop_binary_thresh, 1, NA)
+    # pa.patches <- patches(pa.sol, directions = 8, zeroAsNA = FALSE, allowGaps = TRUE)
+    #
+    # patch.areas <- expanse(pa.patches, unit = "km", byValue = TRUE)
+    # median.patch.size <- median(patch.areas$area, na.rm=T)
+    # mean.patch.size <- mean(patch.areas$area, na.rm=T)
 
     o <- data.frame(project = paste0(project.name,"__",version),
                     scenario = file.name,
@@ -117,13 +144,37 @@ pi.mean.patch.size <- function(ll, puid, all.pa, st.pa, n2k, countries, bioregio
       # TODO: See if we need to be clipping and masking region 1 to puid_area
       region1 <- bioregion[j,] %>% sf::st_make_valid()
 
-      bi.pa.sol <- pa.sol %>% mask(region1)
+      bi.pa.sol_prop <- terra::mask(pa.sol_prop, region1)
+      bi.patch_mask <- terra::ifel(
+        bi.pa.sol_prop > prop_binary_thresh,
+        1,
+        NA
+      )
 
-      pa.patches <- patches(bi.pa.sol, directions = 8, zeroAsNA = FALSE, allowGaps = FALSE)
+      bi.patches <- terra::patches(
+        bi.patch_mask,
+        directions = 8,
+        zeroAsNA = TRUE,
+        allowGaps = TRUE
+      )
 
-      patch.areas <- expanse(pa.patches, unit = "km", byValue = TRUE)
-      median.patch.size <- median(patch.areas$area, na.rm=T)
-      mean.patch.size <- mean(patch.areas$area, na.rm=T)
+      bi.area <- bi.pa.sol_prop
+      names(bi.area) <- "area_km2"
+
+      patch.areas <- terra::zonal(
+        bi.area,
+        bi.patches,
+        fun = "sum",
+        na.rm = TRUE
+      )
+
+      if (nrow(patch.areas) > 0) {
+        median.patch.size <- median(patch.areas$area_km2, na.rm = TRUE)
+        mean.patch.size <- mean(patch.areas$area_km2, na.rm = TRUE)
+      } else {
+        median.patch.size <- NA_real_
+        mean.patch.size <- NA_real_
+      }
 
       o <- data.frame(project = paste0(project.name,"__",version),
                       scenario = file.name,
@@ -138,6 +189,7 @@ pi.mean.patch.size <- function(ll, puid, all.pa, st.pa, n2k, countries, bioregio
                          value = mean.patch.size)
 
       size.bioregion.existing <- rbind(size.bioregion.existing, o, o2)
+      gc()
     }
 
     for (j in 1:nrow(countries)) {
@@ -145,19 +197,37 @@ pi.mean.patch.size <- function(ll, puid, all.pa, st.pa, n2k, countries, bioregio
       # TODO: See if we need to be clipping and masking region 1 to puid_area
       region1 <- countries[j,] %>% sf::st_make_valid()
 
-      co.pa.sol <- pa.sol %>% mask(region1)
+      co.pa.sol_prop <- terra::mask(pa.sol_prop, region1)
 
-      if (!is.na(global(co.pa.sol,"sum",na.rm=T))){
+      co.patch_mask <- terra::ifel(
+        co.pa.sol_prop > prop_binary_thresh,
+        1,
+        NA
+      )
 
-        pa.patches <- patches(co.pa.sol, directions = 8, zeroAsNA = FALSE, allowGaps = FALSE)
+      co.patches <- terra::patches(
+        co.patch_mask,
+        directions = 8,
+        zeroAsNA = TRUE,
+        allowGaps = TRUE
+      )
 
-        patch.areas <- expanse(pa.patches, unit = "km", byValue = TRUE)
-        median.patch.size <- median(patch.areas$area, na.rm=T)
-        mean.patch.size <- mean(patch.areas$area, na.rm=T)
+      co.area <- co.pa.sol_prop
+      names(co.area) <- "area_km2"
 
-      } else if (is.na(global(co.pa.sol,"sum",na.rm=T))) {
-        median.patch.size = NA
-        mean.patch.size = NA
+      patch.areas <- terra::zonal(
+        co.area,
+        co.patches,
+        fun = "sum",
+        na.rm = TRUE
+      )
+
+      if (nrow(patch.areas) > 0) {
+        median.patch.size <- median(patch.areas$area_km2, na.rm = TRUE)
+        mean.patch.size <- mean(patch.areas$area_km2, na.rm = TRUE)
+      } else {
+        median.patch.size <- NA_real_
+        mean.patch.size <- NA_real_
       }
 
       o <- data.frame(project = paste0(project.name,"__",version),
@@ -173,12 +243,14 @@ pi.mean.patch.size <- function(ll, puid, all.pa, st.pa, n2k, countries, bioregio
                          value = mean.patch.size)
 
       size.countries.existing <- rbind(size.countries.existing, o, o2)
+      gc()
     }
+    gc()
   }
   toc()
 
-  # without bioregions
-  out.size.final <- rbind(size.europe.existing, size.countries.existing)
+  # combine calculations for continental, bioregion, and country extents
+  out.size.final <- rbind(size.europe.existing, size.bioregion.existing, size.countries.existing)
 
   outdir <- paste0("performance_outputs/", version)
   dir.create(outdir, showWarnings = FALSE)
