@@ -12,7 +12,7 @@ pi.mean.patch.size(
   n2k,
   countries,
   bioregion,
-  threshold = prop_binary_thresh,
+  threshold = 0,
   project.name,
   version
 )
@@ -47,7 +47,7 @@ Mean/Median Patch Size
 \examples{
 \dontrun{
 pi.mean.patch.size(ll = "C:/.../solution_file.tif", puid, all.pa, st.pa, n2k, countries, bioregion,
-                    threshold = 0.5, project.name = "Example Project",
+                    threshold = 0, project.name = "Example Project",
                     version = "Version 1")
 }
 }
