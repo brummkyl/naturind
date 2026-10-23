@@ -32,7 +32,7 @@ pi.mean.patch.size(
 
 \item{bioregion}{An sf vector layer containing individual biogeographic regions}
 
-\item{threshold}{Majority rule threshold for binarizing a proportional protected area raster}
+\item{threshold}{A double numeric, ranging between 0 and 1, defining the threshold for binarizing a proportional protected area raster}
 
 \item{project.name}{A character vector specifying the name of your project}
 

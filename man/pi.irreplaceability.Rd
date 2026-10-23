@@ -35,7 +35,7 @@ pi.irreplaceability(
 
 \item{gamma.irr}{A SpatRaster layer containing gamma irreplaceability scores for planning units}
 
-\item{irr.quantile}{A double specifying the gamma irreplaceability quantile}
+\item{irr.quantile}{A double numeric, ranging between 0 and 1, specifying the gamma irreplaceability quantile to retain for metric calculations}
 
 \item{project.name}{A character vector specifying the name of your project}
 

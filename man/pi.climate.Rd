@@ -33,9 +33,9 @@ pi.climate(
 
 \item{bioregion}{An sf vector layer containing individual biogeographic regions}
 
-\item{clim.res}{A continuous SpatRaster layer with larger values representing areas that are more climate resilient}
+\item{clim.res}{A SpatRaster layer with larger continuous values representing areas that are more climate resilient}
 
-\item{climate.quantile}{A double specifying the climate resilience quantile}
+\item{climate.quantile}{A double numeric, ranging between 0 and 1, specifying the climate resilience quantile to retain for metric calculations}
 
 \item{project.name}{A character vector specifying the name of your project}
 

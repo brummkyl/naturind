@@ -36,9 +36,9 @@ pi.enlargement(
 
 \item{pa.ref}{A character string specifying which protected area raster should be used as the baseline reference layer when calculating Queen's distances}
 
-\item{strict}{TRUE/FALSE, specifying whether your ll files represent strict expansion priorities}
+\item{strict}{A logical, specifying whether your ll files represent strict expansion priorities}
 
-\item{pae_threshold}{A numeric specifying the distance threshold (in meters) used to characterize expansion areas as enlargements or new establishments}
+\item{pae_threshold}{An integer specifying the distance threshold (in meters) used to characterize expansion areas as enlargements or new establishments}
 
 \item{project.name}{A character vector specifying the name of your project}
 
