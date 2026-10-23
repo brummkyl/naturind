@@ -7,7 +7,7 @@
 #' @param n2k A SpatRaster layer with all existing Natura 2000 protected areas (or any other unique subset of PAs)
 #' @param countries An sf vector layer containing individual countries
 #' @param bioregion An sf vector layer containing individual biogeographic regions
-#' @param pa.ref A character string specifying which protected area raster should be used as the baseline reference layer when calculating Queen's distances
+#' @param pa.ref A character string specifying which protected area raster should be used as the baseline reference layer when calculating Queen's distances. For example, are you expanding on "all.pa" or "n2k"?
 #' @param strict A logical, specifying whether your ll files represent strict expansion priorities
 #' @param pae_threshold An integer specifying the distance threshold (in meters) used to characterize expansion areas as enlargements or new establishments
 #' @param project.name A character vector specifying the name of your project

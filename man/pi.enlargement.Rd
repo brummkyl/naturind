@@ -34,7 +34,7 @@ pi.enlargement(
 
 \item{bioregion}{An sf vector layer containing individual biogeographic regions}
 
-\item{pa.ref}{A character string specifying which protected area raster should be used as the baseline reference layer when calculating Queen's distances}
+\item{pa.ref}{A character string specifying which protected area raster should be used as the baseline reference layer when calculating Queen's distances. For example, are you expanding on "all.pa" or "n2k"?}
 
 \item{strict}{A logical, specifying whether your ll files represent strict expansion priorities}
 
