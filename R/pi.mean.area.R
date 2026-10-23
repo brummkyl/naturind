@@ -45,6 +45,7 @@
 #' @importFrom tictoc toc
 #' @importFrom utils write.csv
 #' @importFrom tools file_path_sans_ext
+#' @importFrom Makurhini MK_ProtConn
 #'
 #' @returns A formatted .csv file saved to the "performance_outputs/version" directory
 #' @export

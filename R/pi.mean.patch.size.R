@@ -7,7 +7,7 @@
 #' @param n2k A SpatRaster layer with all existing Natura 2000 protected areas (or any other unique subset of PAs)
 #' @param countries An sf vector layer containing individual countries
 #' @param bioregion An sf vector layer containing individual biogeographic regions
-#' @param threshold Majority rule threshold for binarizing a proportional protected area raster
+#' @param threshold A double numeric, ranging between 0 and 1, defining the threshold for binarizing a proportional protected area raster
 #' @param project.name A character vector specifying the name of your project
 #' @param version A character vector specifying the version (e.g., date) of your workflow
 #'

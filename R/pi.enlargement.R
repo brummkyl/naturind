@@ -8,8 +8,8 @@
 #' @param countries An sf vector layer containing individual countries
 #' @param bioregion An sf vector layer containing individual biogeographic regions
 #' @param pa.ref A character string specifying which protected area raster should be used as the baseline reference layer when calculating Queen's distances
-#' @param strict TRUE/FALSE, specifying whether your ll files represent strict expansion priorities
-#' @param pae_threshold A numeric specifying the distance threshold (in meters) used to characterize expansion areas as enlargements or new establishments
+#' @param strict A logical, specifying whether your ll files represent strict expansion priorities
+#' @param pae_threshold An integer specifying the distance threshold (in meters) used to characterize expansion areas as enlargements or new establishments
 #' @param project.name A character vector specifying the name of your project
 #' @param version A character vector specifying the version (e.g., date) of your workflow
 #'

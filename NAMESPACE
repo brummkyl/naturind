@@ -2,6 +2,7 @@
 
 export(pi.carbon)
 export(pi.climate)
+export(pi.connected)
 export(pi.enlargement)
 export(pi.es)
 export(pi.evp)
@@ -12,6 +13,7 @@ export(pi.mean.patch.size.vector)
 export(pi.mta)
 export(pi.oppcosts)
 export(pi.transboundary)
+importFrom(Makurhini,MK_ProtConn)
 importFrom(Matrix,
   Diagonal,
   rowSums

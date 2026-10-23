@@ -8,7 +8,7 @@
 #' @param countries An sf vector layer containing individual countries
 #' @param bioregion An sf vector layer containing individual biogeographic regions
 #' @param gamma.irr A SpatRaster layer containing gamma irreplaceability scores for planning units
-#' @param irr.quantile A double specifying the gamma irreplaceability quantile
+#' @param irr.quantile A double numeric, ranging between 0 and 1, specifying the gamma irreplaceability quantile to retain for metric calculations
 #' @param project.name A character vector specifying the name of your project
 #' @param version A character vector specifying the version (e.g., date) of your workflow
 #'

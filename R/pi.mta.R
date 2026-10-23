@@ -16,7 +16,7 @@
 #' @param bioregion.sub A dataframe containing two columns: 'names' = region names; 'codes' = code names for regions
 #' @param bioregion.sub2 A dataframe containing two columns: 'id' as in puid.num's unique identifiers; 'names' as in bioregion.sub
 #' @param selection A character vector specifying which feature subsets you would like to calculate MTA for (e.g., c("species", "habitats"); "species"; "habitats")
-#' @param separate TRUE/FALSE, indicating whether you would like to calculate MTA separately for each group specified in the 'selection' argument. e.g., If selection = c("species", "habitats") and separate = TRUE, MTA will be calculated first for species, and then separately for habitats. In this example, if separate = FALSE, then a single estimate of MTA will be calculated for the combination of species and habitats
+#' @param separate A logical indicating whether you would like to calculate MTA separately for each group specified in the 'selection' argument. e.g., If selection = c("species", "habitats") and separate = TRUE, MTA will be calculated first for species, and then separately for habitats. In this example, if separate = FALSE, then a single estimate of MTA will be calculated for the combination of species and habitats
 #'
 #' @returns A formatted .csv file saved to the "performance_outputs/version" directory
 #' @export

@@ -17,6 +17,7 @@ Imports:
     foreach,
     gdistance,
     magrittr,
+    Makurhini (>= 3.0),
     Matrix,
     parallel,
     progress,
@@ -28,3 +29,5 @@ Imports:
     tools
 URL: https://github.com/brummkyl/naturind
 BugReports: https://github.com/brummkyl/naturind/issues
+Remotes:  
+    connectscape/Makurhini
