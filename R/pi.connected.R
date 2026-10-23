@@ -1,11 +1,3 @@
-# 03_ConnectedProtectedLand
-
-# read in connectivity raster
-# contains a merged max ems score without PAs
-#conn.layer <- terra::rast(paste0(path_connectivity, "EMS/1k/max_EMS_policy_habs.tif"))
-# --- Optionally coarsen the resistance layer to match upscaled solutions ---
-#target_res <- 5000  # e.g. 2000 for 2 km, 5000 for 5 km, must be larger than existing resolution of all input layers
-
 #' Absolute (ProtCon) and Relative (RelConn) Protected and Connected Land Area
 #'
 #' @param ll A character vector containing file paths of raster files (e.g., spatial prioritization outputs) in '.tif' format.
@@ -28,6 +20,7 @@
 #'               bin.threshold = 0.5, euc.threshold = 10000,
 #'               project.name = "Example Project", version = "Version 1")
 #'}
+
 pi.connected <- function(ll, puid, countries, bioregion, conn.layer, target.res = 5000, bin.threshold = 0.5, euc.threshold = 10000, project.name, version){
 
   puid <- puid %>% mask(countries)
