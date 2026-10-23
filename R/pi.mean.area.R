@@ -26,6 +26,10 @@
 
 #' @importFrom sf st_crs
 #' @importFrom sf st_area
+#' @importFrom sf st_as_sf
+#' @importFrom sf st_union
+#' @importFrom sf st_make_valid
+#' @importFrom sf st_is_valid
 #' @importFrom stats quantile
 #' @importFrom terra values
 #' @importFrom terra rast
@@ -40,10 +44,14 @@
 #' @importFrom terra ifel
 #' @importFrom terra patches
 #' @importFrom terra expanse
+#' @importFrom terra terraOptions
+#' @importFrom terra as.polygons
+#' @importFrom raster raster
 #' @importFrom stats median
 #' @importFrom tictoc tic
 #' @importFrom tictoc toc
 #' @importFrom utils write.csv
+#' @importFrom utils flush.console
 #' @importFrom tools file_path_sans_ext
 #' @importFrom Makurhini MK_ProtConn
 #'

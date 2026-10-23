@@ -35,15 +35,21 @@ importFrom(parallel,
   makeCluster,
   stopCluster
 )
+importFrom(raster,raster)
 importFrom(sf,
   st_area,
-  st_crs
+  st_as_sf,
+  st_crs,
+  st_is_valid,
+  st_make_valid,
+  st_union
 )
 importFrom(stats,
   median,
   quantile
 )
 importFrom(terra,
+  as.polygons,
   crop,
   crs,
   expanse,
@@ -56,6 +62,7 @@ importFrom(terra,
   patches,
   rast,
   res,
+  terraOptions,
   values
 )
 importFrom(tictoc,
@@ -63,4 +70,7 @@ importFrom(tictoc,
   toc
 )
 importFrom(tools,file_path_sans_ext)
-importFrom(utils,write.csv)
+importFrom(utils,
+  flush.console,
+  write.csv
+)
