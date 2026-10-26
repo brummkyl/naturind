@@ -334,7 +334,7 @@ pi.enlargement <- function(ll, puid, ref.pa, st.pa = NULL,
     # sol.estab <- sol * pae.estab
 
     # normalized by proportion of total solution area, including area of existing PAs
-    sol.expansion.region <- exactextractr::exact_extract(sol.expansion, co.dissolve, fun="sum") / sol.area
+    #sol.expansion.region <- exactextractr::exact_extract(sol.expansion, co.dissolve, fun="sum") / sol.area
 
     sol.expansion.europe <- exactextractr::exact_extract(sol.expansion, co.dissolve, fun="sum")[[1]]/ov.sol.area[[1]]
     sol.estab.europe <- exactextractr::exact_extract(sol.estab, co.dissolve, fun="sum")[[1]]/ov.sol.area[[1]]
