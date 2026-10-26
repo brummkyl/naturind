@@ -2,12 +2,8 @@
 #'
 #' @param ll A character vector containing file paths of raster files (e.g., spatial prioritization outputs) in '.tif' format.
 #' @param puid A SpatRaster layer with planning units
-#' @param all.pa A SpatRaster layer with all existing protected areas
-#' @param st.pa A SpatRaster layer with all existing strict protected areas
-#' @param n2k A SpatRaster layer with all existing Natura 2000 protected areas (or any other unique subset of PAs)
 #' @param countries An sf vector layer containing individual countries
-#' @param bioregion An sf vector layer containing individual biogeographic regions
-#' @param tb.buffers An sf vector layer containing a transboundary region
+#' @param tb.buffers An sf vector layer containing a transboundary region. See the 'create.tb.buffer' function.
 #' @param project.name A character vector specifying the name of your project
 #' @param version A character vector specifying the version (e.g., date) of your workflow
 #'
@@ -16,12 +12,12 @@
 #'
 #' @examples
 #' \dontrun{
-#' pi.transboundary(ll = "C:/.../solution_file.tif", puid, all.pa, st.pa, n2k, countries,
-#'                   bioregion, tb.buffers, project.name = "Example Project",
+#' pi.transboundary(ll = "C:/.../solution_file.tif", puid, countries,
+#'                   tb.buffers, project.name = "Example Project",
 #'                   version = "Version 1")
 #'}
 
-pi.transboundary <- function(ll, puid, all.pa, st.pa, n2k, countries, bioregion, tb.buffers, project.name, version){
+pi.transboundary <- function(ll, puid, countries, tb.buffers, project.name, version){
 
   ee <- ll %>% rast() %>% extend(puid) %>% mask(countries)
   existing_pa_names <- c(basename(ll))
@@ -31,27 +27,27 @@ pi.transboundary <- function(ll, puid, all.pa, st.pa, n2k, countries, bioregion,
     tb.buffers <- tb.buffers |> sf::st_transform(crs = st_crs(puid))
   }
   assertthat::assert_that(st_crs(tb.buffers) == st_crs(puid))
-
-  if(terra::crs(puid) != terra::crs(all.pa)){
-    all.pa <- all.pa |> terra::project(puid)
-  }
-  assertthat::assert_that(crs(all.pa) == crs(puid))
-
-  if(terra::crs(puid) != terra::crs(st.pa)){
-    st.pa <- st.pa |> terra::project(puid)
-  }
-  assertthat::assert_that(crs(st.pa) == crs(puid))
-
-  if(terra::crs(puid) != terra::crs(n2k)){
-    n2k <- n2k |> terra::project(puid)
-  }
-  assertthat::assert_that(crs(n2k) == crs(puid))
+  #
+  # if(terra::crs(puid) != terra::crs(all.pa)){
+  #   all.pa <- all.pa |> terra::project(puid)
+  # }
+  # assertthat::assert_that(crs(all.pa) == crs(puid))
+  #
+  # if(terra::crs(puid) != terra::crs(st.pa)){
+  #   st.pa <- st.pa |> terra::project(puid)
+  # }
+  # assertthat::assert_that(crs(st.pa) == crs(puid))
+  #
+  # if(terra::crs(puid) != terra::crs(n2k)){
+  #   n2k <- n2k |> terra::project(puid)
+  # }
+  # assertthat::assert_that(crs(n2k) == crs(puid))
 
   puid <- puid %>% mask(countries)
 
-  # stack layers
-  ee <- c(ee, all.pa, st.pa, n2k)
-  existing_pa_names <- c(existing_pa_names, "Existing all PA", "Existing strict PA", "Existing N2K")
+  # # stack layers
+  # ee <- c(ee, all.pa, st.pa, n2k)
+  # existing_pa_names <- c(existing_pa_names, "Existing all PA", "Existing strict PA", "Existing N2K")
 
   # Make an area grid - ha
   puid <- puid %>% mask(ee[[1]])
@@ -73,6 +69,8 @@ pi.transboundary <- function(ll, puid, all.pa, st.pa, n2k, countries, bioregion,
     message("NA footprints differ between ee layers; masking stack to align with the first input layer...")
     ee <- ee %>% mask(ee[[1]])
   }
+
+  co.dissolve <- sf::st_union(countries)
 
   message(paste0("Number of planning units in solution files = ", sum(!is.na(values(ee[[1]])))))
   message(paste0("Number of planning units in puid file = ", sum(!is.na(values(puid)))))
@@ -98,7 +96,9 @@ pi.transboundary <- function(ll, puid, all.pa, st.pa, n2k, countries, bioregion,
     # Area of protected areas
     pa.sol.area <- pa.sol
     # Total area of protected areas contained in the solution
-    ov.area <- global(pa.sol.area, "sum", na.rm=T)[[1]]
+    ov.area <- exactextractr::exact_extract(pa.sol.area, co.dissolve, fun="sum")
+    # ov.area <- global(pa.sol.area, "sum", na.rm=T)[[1]]
+
     # Total area of transboundary buffers
     tb.area <- as.numeric(st_area(tb.buffers) / 1e6)
     # Total area of protected areas contained within transboundary country buffers

@@ -4,9 +4,6 @@
 #' @param puid A SpatRaster layer with planning units
 #' @param puid.num A SpatRaster layer with unique identifiers (i.e., cell positions) for each planning unit
 #' @param countries An sf vector layer containing individual countries
-#' @param all.pa A SpatRaster layer with all existing protected areas
-#' @param st.pa A SpatRaster layer with all existing strict protected areas
-#' @param n2k A SpatRaster layer with all existing Natura 2000 protected areas (or any other unique subset of PAs)
 #' @param feat.info A dataframe containing attributes for each feature. Useful for sub-setting e.g., species, habitats.
 #' @param rij An rij matrix with features as rows and unique planning unit identifiers as columns
 #' @param project.name A character vector specifying the name of your project
@@ -23,13 +20,13 @@
 #'
 #' @examples
 #' \dontrun{
-#' pi.mta(ll = "C:/.../solution_file.tif", puid, puid.num, countries, all.pa,
-#'         st.pa, n2k, feat.info, rij, project.name = "Example Project",
+#' pi.mta(ll = "C:/.../solution_file.tif", puid, puid.num, countries,
+#'         feat.info, rij, project.name = "Example Project",
 #'         version = "Version 1", countries.sub, countries.sub2,
 #'         bioregion.sub, bioregion.sub2, selection = c("species", "habitats"), separate = FALSE)
 #'}
 
-pi.mta <- function(ll, puid, puid.num, countries, all.pa, st.pa, n2k, feat.info = p, rij = y, project.name, version,
+pi.mta <- function(ll, puid, puid.num, countries, feat.info = p, rij = y, project.name, version,
                    countries.sub, countries.sub2, bioregion.sub, bioregion.sub2, selection = c("species", "habitats"), separate = FALSE){
 
   outdir <- paste0("performance_outputs/", version)
@@ -38,21 +35,32 @@ pi.mta <- function(ll, puid, puid.num, countries, all.pa, st.pa, n2k, feat.info 
   # Deep-copy every terra object you might mutate, before doing anything else
   puid      <- terra::deepcopy(puid)
   puid.num  <- terra::deepcopy(puid.num)
-  all.pa    <- terra::deepcopy(all.pa)
-  st.pa     <- terra::deepcopy(st.pa)
-  n2k       <- terra::deepcopy(n2k)
+  # all.pa    <- terra::deepcopy(all.pa)
+  # st.pa     <- terra::deepcopy(st.pa)
+  # n2k       <- terra::deepcopy(n2k)
 
   puid <- puid %>% mask(countries)
   puid.num <- puid.num %>% mask(countries)
+
+  country.id <- countries.sub2$id[!is.na(countries.sub2$MS)]
+  bioregion.id <- bioregion.sub2$id[!is.na(bioregion.sub2$BGR)]
+  assertthat::assert_that(length(country.id) == length(bioregion.id))
+
+  if(sum(!is.na(terra::values(puid))) != length(country.id)){
+    message("Planning units appear to be missing regional associations in the '.sub2' data frames. Planning unit and solution rasters (ll) will be adjusted accordingly.")
+    drop_cells <- setdiff(seq_len(terra::ncell(puid)), country.id)
+    puid[drop_cells] <- NA
+    puid.num[drop_cells] <- NA
+  }
 
   p <- feat.info
   y <- rij
 
   ee <- ll %>% terra::rast() %>% terra::extend(puid) %>% mask(countries)
   existing_pa_names <- c(basename(ll))
-
-  ee <- c(ee, all.pa, st.pa, n2k)
-  existing_pa_names <- c(existing_pa_names, "Existing all PA", "Existing strict PA", "Existing N2K")
+  #
+  # ee <- c(ee, all.pa, st.pa, n2k)
+  # existing_pa_names <- c(existing_pa_names, "Existing all PA", "Existing strict PA", "Existing N2K")
 
   # Check whether all layers already have the same NA footprint as ee[[1]]
   # This is used to adjust baseline existing PA calculations, for consistency with the provided planning solutions
@@ -73,7 +81,7 @@ pi.mta <- function(ll, puid, puid.num, countries, all.pa, st.pa, n2k, feat.info 
     ee <- ee %>% terra::mask(ee[[1]])
   }
 
-  #ee <- ee %>% mask(puid)
+  ee <- ee %>% mask(puid)
   #ee <- ee %>% mask(ee[[1]])
 
   puid <- puid %>% terra::mask(ee[[1]])
@@ -190,6 +198,11 @@ pi.mta <- function(ll, puid, puid.num, countries, all.pa, st.pa, n2k, feat.info 
                        pi = as.numeric(Matrix::rowSums(rij_sel)))
 
       corrected.targets <- data.frame(name = features$name, value = Matrix::rowSums(rij2) * features$prop)
+      drop.features <- corrected.targets$name[corrected.targets$value == 0]
+      row.id.drop <- which(!rownames(rij_sel) %in% drop.features)
+      rij_sel <- rij_sel[row.id.drop, , drop = FALSE]
+      rij2 <- rij2[row.id.drop, , drop = FALSE]
+      features<-features[!features$name %in% drop.features,]
 
       # Join in ti
       ta <- ta |> dplyr::left_join(corrected.targets |> dplyr::select(name, value) |>
@@ -284,7 +297,7 @@ pi.mta <- function(ll, puid, puid.num, countries, all.pa, st.pa, n2k, feat.info 
       # assert that overall MTA can accurately be back-calculated from these regional contributions
       xx = data.frame(sum = rowSums(co.ov.mta.out.existing[,2:ncol(co.ov.mta.out.existing)]))
       xx2 <- data.frame(sum = pmin(as.numeric(xx[[1]]), 1, na.rm = FALSE))
-      assertthat::assert_that(abs(mta - mean(xx2$sum)) < 1e-4)
+      assertthat::assert_that(abs(mta - mean(xx2$sum)) < 1e-6)
 
       outdir.mta <- paste0(outdir, "/MTA/")
       dir.create(outdir.mta, showWarnings = FALSE)
@@ -364,7 +377,7 @@ pi.mta <- function(ll, puid, puid.num, countries, all.pa, st.pa, n2k, feat.info 
       # assert that overall MTA can accurately be back-calculated from these regional contributions
       yy = data.frame(sum = rowSums(bi.ov.mta.out.existing[,2:ncol(bi.ov.mta.out.existing)]))
       yy2 <- data.frame(sum = pmin(as.numeric(yy[[1]]), 1, na.rm = FALSE))
-      assertthat::assert_that(abs(mta - mean(yy2$sum)) < 1e-4)
+      assertthat::assert_that(abs(mta - mean(yy2$sum)) < 1e-6)
 
       #if(consensus.sol == 1){
       #  ofname <- paste0(outdir.consensus, "/", "MTA/", project.name,"__", version, "__", paste0(file.name, "__indicator_MTA_",h,"_Bioregion_Contribution_Percentages.csv"))

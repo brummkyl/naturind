@@ -2,9 +2,6 @@
 #'
 #' @param ll A character vector containing file paths of raster files (e.g., spatial prioritization outputs) in '.tif' format.
 #' @param puid A SpatRaster layer with planning units
-#' @param all.pa A SpatRaster layer with all existing protected areas
-#' @param st.pa A SpatRaster layer with all existing strict protected areas
-#' @param n2k A SpatRaster layer with all existing Natura 2000 protected areas (or any other unique subset of PAs)
 #' @param countries An sf vector layer containing individual countries
 #' @param bioregion An sf vector layer containing individual biogeographic regions
 #' @param pollination A SpatRaster layer quantifying pollination supply in units of m^2
@@ -17,12 +14,12 @@
 #'
 #' @examples
 #' \dontrun{
-#' pi.es(ll = "C:/.../solution_file.tif", puid, all.pa, st.pa, n2k, countries,
+#' pi.es(ll = "C:/.../solution_file.tif", puid, countries,
 #'        bioregion, pollination, capdem, project.name = "Example Project",
 #'        version = "Version 1")
 #'}
 
-pi.es <- function(ll, puid, all.pa, st.pa, n2k, countries, bioregion, pollination = rs3, capdem = sp.reg.es, project.name, version){
+pi.es <- function(ll, puid, countries, bioregion, pollination = rs3, capdem = sp.reg.es, project.name, version){
 
   rs3 <- pollination
   sp.reg.es <- capdem
@@ -55,8 +52,8 @@ pi.es <- function(ll, puid, all.pa, st.pa, n2k, countries, bioregion, pollinatio
   ee <- ll %>% rast() %>% extend(puid) %>% mask(countries)
   existing_pa_names <- c(basename(ll))
 
-  ee <- c(ee, all.pa, st.pa, n2k)
-  existing_pa_names <- c(existing_pa_names, "Existing all PA", "Existing strict PA", "Existing N2K")
+  # ee <- c(ee, all.pa, st.pa, n2k)
+  # existing_pa_names <- c(existing_pa_names, "Existing all PA", "Existing strict PA", "Existing N2K")
 
   # Make an area grid - ha
   puid <- puid %>% mask(ee[[1]])
@@ -84,6 +81,8 @@ pi.es <- function(ll, puid, all.pa, st.pa, n2k, countries, bioregion, pollinatio
   }
 
   #ee <- ee %>% mask(puid)
+
+  co.dissolve <- sf::st_union(countries)
 
   message(paste0("Number of planning units in solution files = ", sum(!is.na(values(ee[[1]])))))
   message(paste0("Number of planning units in puid file = ", sum(!is.na(values(puid)))))
@@ -142,8 +141,11 @@ pi.es <- function(ll, puid, all.pa, st.pa, n2k, countries, bioregion, pollinatio
     pa.ov.rs3 <- puid_area_m * rs3
 
     # Overall sum
-    rs3.sol <- global(pa.sol.rs3,"sum",na.rm=TRUE)[[1]]
-    rs3.ov <- global(pa.ov.rs3,"sum",na.rm=TRUE)[[1]]
+    rs3.sol <- exactextractr::exact_extract(pa.sol.rs3, co.dissolve, fun="sum")
+    rs3.ov <- exactextractr::exact_extract(pa.ov.rs3, co.dissolve, fun="sum")
+
+    # rs3.sol <- global(pa.sol.rs3,"sum",na.rm=TRUE)[[1]]
+    # rs3.ov <- global(pa.ov.rs3,"sum",na.rm=TRUE)[[1]]
 
     # Overall normalization
     rs3.ov.prop <- (rs3.sol/rs3.ov)[[1]]
@@ -274,8 +276,12 @@ pi.es <- function(ll, puid, all.pa, st.pa, n2k, countries, bioregion, pollinatio
       sp.es.lyr <- terra::unwrap(sp.reg.es.aligned[[k]])
       sp.es.lyr.sol <- pa.sol * sp.es.lyr
 
-      tot.sol <- global(sp.es.lyr.sol,"sum",na.rm=TRUE)[[1]]
-      tot.ov <- global(sp.es.lyr,"sum",na.rm=TRUE)[[1]]
+      tot.sol <- exactextractr::exact_extract(sp.es.lyr.sol, co.dissolve, fun="sum")
+      tot.ov <- exactextractr::exact_extract(sp.es.lyr, co.dissolve, fun="sum")
+
+      # tot.sol <- global(sp.es.lyr.sol,"sum",na.rm=TRUE)[[1]]
+      # tot.ov <- global(sp.es.lyr,"sum",na.rm=TRUE)[[1]]
+
       ov.prop <- (tot.sol/tot.ov)[[1]]
 
       o2 <- data.frame(project = paste0(project.name,"__",version),

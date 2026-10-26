@@ -7,9 +7,6 @@
 pi.es(
   ll,
   puid,
-  all.pa,
-  st.pa,
-  n2k,
   countries,
   bioregion,
   pollination = rs3,
@@ -22,12 +19,6 @@ pi.es(
 \item{ll}{A character vector containing file paths of raster files (e.g., spatial prioritization outputs) in '.tif' format.}
 
 \item{puid}{A SpatRaster layer with planning units}
-
-\item{all.pa}{A SpatRaster layer with all existing protected areas}
-
-\item{st.pa}{A SpatRaster layer with all existing strict protected areas}
-
-\item{n2k}{A SpatRaster layer with all existing Natura 2000 protected areas (or any other unique subset of PAs)}
 
 \item{countries}{An sf vector layer containing individual countries}
 
@@ -49,7 +40,7 @@ Ecosystem Services
 }
 \examples{
 \dontrun{
-pi.es(ll = "C:/.../solution_file.tif", puid, all.pa, st.pa, n2k, countries,
+pi.es(ll = "C:/.../solution_file.tif", puid, countries,
        bioregion, pollination, capdem, project.name = "Example Project",
        version = "Version 1")
 }

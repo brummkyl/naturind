@@ -1,6 +1,6 @@
 #' Opportunity Costs
 #'
-#' @param ll A character vector containing file paths of raster files (e.g., spatial prioritization outputs) in '.tif' format.
+#' @param ll A character vector containing file paths of raster files (e.g., expansion priorities) in '.tif' format.
 #' @param puid A SpatRaster layer with planning units
 #' @param countries An sf vector layer containing individual countries
 #' @param bioregion An sf vector layer containing individual biogeographic regions
@@ -69,6 +69,8 @@ pi.oppcosts <- function(ll, puid, countries, bioregion, for.opp, ag.opp, project
   # ag opportunity costs
   ag.opp_res <- terra::resample(ag.opp,puid,method="bilinear")
   assertthat::assert_that(all.equal(res(ag.opp_res), res(puid)))
+
+  co.dissolve <- sf::st_union(countries)
 
   # Check CRS
   # All PAs
@@ -159,9 +161,13 @@ pi.oppcosts <- function(ll, puid, countries, bioregion, for.opp, ag.opp, project
     pa.exp.ag.opp <- pa.sol.exp.area * ag.opp_res
 
     # Overall calculations for Europe
-    pa.exp.europe <- global(pa.sol.exp.area,"sum",na.rm=TRUE)
-    for.oppcosts.europe <- global(pa.exp.for.opp,"sum",na.rm=TRUE)[[1]]
-    ag.oppcosts.europe <- global(pa.exp.ag.opp,"sum",na.rm=TRUE)[[1]]
+    pa.exp.europe <- exactextractr::exact_extract(pa.sol.exp.area, co.dissolve, fun="sum")
+    for.oppcosts.europe <- exactextractr::exact_extract(pa.exp.for.opp, co.dissolve, fun="sum")
+    ag.oppcosts.europe <- exactextractr::exact_extract(pa.exp.ag.opp, co.dissolve, fun="sum")
+
+    # pa.exp.europe <- global(pa.sol.exp.area,"sum",na.rm=TRUE)
+    # for.oppcosts.europe <- global(pa.exp.for.opp,"sum",na.rm=TRUE)[[1]]
+    # ag.oppcosts.europe <- global(pa.exp.ag.opp,"sum",na.rm=TRUE)[[1]]
 
     # Overall - normalization
 

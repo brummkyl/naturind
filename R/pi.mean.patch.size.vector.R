@@ -1,19 +1,3 @@
-#########
-# Run this first using "_Processed" layers representing the output from the tiled processing scripts
-#########
-#
-# pa.sol.crop <- pa.sol %>%
-#   sf::st_make_valid() %>%
-#   sf::st_union() %>%          # fuses only touching/overlapping polygons; leaves isolated ones alone
-#   sf::st_cast("POLYGON") %>%  # splits the result into one row per resulting patch (fused or standalone)
-#   sf::st_sf(geometry = .) %>%
-#   st_intersection(countries.dissolve)
-#
-# pa.sol.crop$area_km2 <- st_area(pa.sol.crop) / 1e6
-# st_write(pa.sol.crop, "H:/N2K/eea_v_3035_100_k_natura2000_p_2024_v01_r00/eea_v_3035_100_k_natura2000_p_2024_v01_r00/N2K_NatDA_Processed_IndicatorsMS.gpkg")
-
-
-
 #ll.v <- list(hist, curr)
 #names(ll.v) <- c("2014", "2024")
 
@@ -36,7 +20,7 @@
 
 pi.mean.patch.size.vector <- function(ll.v, countries, bioregion, project.name, version){
 
-  countries.dissolve <- sf::st_union(countries)
+  co.dissolve <- sf::st_union(countries)
 
   # bioregions and countries
   size.europe.existing <- data.frame()
@@ -55,7 +39,7 @@ pi.mean.patch.size.vector <- function(ll.v, countries, bioregion, project.name, 
       sf::st_union() %>%          # fuses only touching/overlapping polygons; leaves isolated ones alone
       sf::st_cast("POLYGON") %>%  # splits the result into one row per resulting patch (fused or standalone)
       sf::st_sf(geometry = .) %>%
-      sf::st_intersection(countries.dissolve)
+      sf::st_intersection(co.dissolve)
 
     pa.sol.crop$area_km2 <- sf::st_area(pa.sol.crop) / 1e6
 

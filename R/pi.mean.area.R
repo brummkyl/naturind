@@ -2,9 +2,6 @@
 #'
 #' @param ll A character vector containing file paths of raster files (e.g., spatial prioritization outputs) in '.tif' format.
 #' @param puid A SpatRaster layer with planning units
-#' @param all.pa A SpatRaster layer with all existing protected areas
-#' @param st.pa A SpatRaster layer with all existing strict protected areas
-#' @param n2k A SpatRaster layer with all existing Natura 2000 protected areas (or any other unique subset of PAs)
 #' @param countries An sf vector layer containing individual countries
 #' @param bioregion An sf vector layer containing individual biogeographic regions
 #' @param project.name A character vector specifying the name of your project
@@ -30,6 +27,13 @@
 #' @importFrom sf st_union
 #' @importFrom sf st_make_valid
 #' @importFrom sf st_is_valid
+#' @importFrom sf st_touches
+#' @importFrom sf st_buffer
+#' @importFrom sf st_intersection
+#' @importFrom sf st_geometry
+#' @importFrom sf st_sf
+#' @importFrom sf st_sfc
+#' @importFrom sf st_write
 #' @importFrom stats quantile
 #' @importFrom terra values
 #' @importFrom terra rast
@@ -60,27 +64,27 @@
 #'
 #' @examples
 #' \dontrun{
-#' pi.mean.area(ll = "C:/.../solution_file.tif", puid, all.pa, st.pa, n2k,
+#' pi.mean.area(ll = "C:/.../solution_file.tif", puid,
 #'               countries, bioregion, project.name = "Example Project", version = "Version 1")
 #'}
 
-pi.mean.area <- function(ll, puid, all.pa, st.pa, n2k, countries, bioregion, project.name, version){
+pi.mean.area <- function(ll, puid, countries, bioregion, project.name, version){
 
-  # Transform to ensure alignment of CRS
-  if(terra::crs(puid) != terra::crs(all.pa)){
-    all.pa <- all.pa |> terra::project(puid)
-  }
-  assertthat::assert_that(crs(all.pa) == crs(puid))
-
-  if(terra::crs(puid) != terra::crs(st.pa)){
-    st.pa <- st.pa |> terra::project(puid)
-  }
-  assertthat::assert_that(crs(st.pa) == crs(puid))
-
-  if(terra::crs(puid) != terra::crs(n2k)){
-    n2k <- n2k |> terra::project(puid)
-  }
-  assertthat::assert_that(crs(n2k) == crs(puid))
+  # # Transform to ensure alignment of CRS
+  # if(terra::crs(puid) != terra::crs(all.pa)){
+  #   all.pa <- all.pa |> terra::project(puid)
+  # }
+  # assertthat::assert_that(crs(all.pa) == crs(puid))
+  #
+  # if(terra::crs(puid) != terra::crs(st.pa)){
+  #   st.pa <- st.pa |> terra::project(puid)
+  # }
+  # assertthat::assert_that(crs(st.pa) == crs(puid))
+  #
+  # if(terra::crs(puid) != terra::crs(n2k)){
+  #   n2k <- n2k |> terra::project(puid)
+  # }
+  # assertthat::assert_that(crs(n2k) == crs(puid))
 
   puid <- puid %>% mask(countries)
   puid_area <- puid
@@ -88,8 +92,8 @@ pi.mean.area <- function(ll, puid, all.pa, st.pa, n2k, countries, bioregion, pro
   ee <- ll %>% rast() %>% extend(puid) %>% mask(countries)
   existing_pa_names <- c(basename(ll))
 
-  ee <- c(ee, all.pa, st.pa, n2k)
-  existing_pa_names <- c(existing_pa_names, "Existing all PA", "Existing strict PA", "Existing N2K")
+  #ee <- c(ee, all.pa, st.pa, n2k)
+  #existing_pa_names <- c(existing_pa_names, "Existing all PA", "Existing strict PA", "Existing N2K")
 
   puid <- puid %>% mask(ee[[1]])
   puid_area <- puid_area %>% mask(ee[[1]])
@@ -114,6 +118,7 @@ pi.mean.area <- function(ll, puid, all.pa, st.pa, n2k, countries, bioregion, pro
   }
 
   #ee <- ee %>% mask(puid)
+  co.dissolve <- sf::st_union(countries)
 
   message(paste0("Number of planning units in solution files = ", sum(!is.na(values(ee[[1]])))))
   message(paste0("Number of planning units in puid file = ", sum(!is.na(values(puid)))))
@@ -142,8 +147,11 @@ pi.mean.area <- function(ll, puid, all.pa, st.pa, n2k, countries, bioregion, pro
     pa.sol.area <- pa.sol
 
     # Overall sum
-    ov.eur.area <- global(puid_area,"sum",na.rm=TRUE)[[1]]
-    ov.sol.area <- global(pa.sol.area,"sum",na.rm=TRUE)[[1]]
+    ov.eur.area <- exactextractr::exact_extract(puid_area, co.dissolve, fun="sum")
+    ov.sol.area <- exactextractr::exact_extract(pa.sol.area, co.dissolve, fun="sum")
+
+    #ov.eur.area <- global(puid_area,"sum",na.rm=TRUE)[[1]]
+    #ov.sol.area <- global(pa.sol.area,"sum",na.rm=TRUE)[[1]]
 
     # normalization
     # normalize by the total area of each region

@@ -16,7 +16,7 @@ pi.oppcosts(
 )
 }
 \arguments{
-\item{ll}{A character vector containing file paths of raster files (e.g., spatial prioritization outputs) in '.tif' format.}
+\item{ll}{A character vector containing file paths of raster files (e.g., expansion priorities) in '.tif' format.}
 
 \item{puid}{A SpatRaster layer with planning units}
 

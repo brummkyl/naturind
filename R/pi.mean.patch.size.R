@@ -2,9 +2,6 @@
 #'
 #' @param ll A character vector containing file paths of raster files (e.g., spatial prioritization outputs) in '.tif' format.
 #' @param puid A SpatRaster layer with planning units
-#' @param all.pa A SpatRaster layer with all existing protected areas
-#' @param st.pa A SpatRaster layer with all existing strict protected areas
-#' @param n2k A SpatRaster layer with all existing Natura 2000 protected areas (or any other unique subset of PAs)
 #' @param countries An sf vector layer containing individual countries
 #' @param bioregion An sf vector layer containing individual biogeographic regions
 #' @param threshold A double numeric, ranging between 0 and 1, defining the threshold for binarizing a proportional protected area raster
@@ -16,30 +13,30 @@
 #'
 #' @examples
 #' \dontrun{
-#' pi.mean.patch.size(ll = "C:/.../solution_file.tif", puid, all.pa, st.pa, n2k, countries, bioregion,
+#' pi.mean.patch.size(ll = "C:/.../solution_file.tif", puid, countries, bioregion,
 #'                     threshold = 0, project.name = "Example Project",
 #'                     version = "Version 1")
 #'}
 
-pi.mean.patch.size <- function(ll, puid, all.pa, st.pa, n2k, countries, bioregion, threshold = 0, project.name, version){
+pi.mean.patch.size <- function(ll, puid, countries, bioregion, threshold = 0, project.name, version){
 
   prop_binary_thresh <- threshold
 
   # Transform to ensure alignment of CRS
-  if(terra::crs(puid) != terra::crs(all.pa)){
-    all.pa <- all.pa |> terra::project(puid)
-  }
-  assertthat::assert_that(crs(all.pa) == crs(puid))
-
-  if(terra::crs(puid) != terra::crs(st.pa)){
-    st.pa <- st.pa |> terra::project(puid)
-  }
-  assertthat::assert_that(crs(st.pa) == crs(puid))
-
-  if(terra::crs(puid) != terra::crs(n2k)){
-    n2k <- n2k |> terra::project(puid)
-  }
-  assertthat::assert_that(crs(n2k) == crs(puid))
+  # if(terra::crs(puid) != terra::crs(all.pa)){
+  #   all.pa <- all.pa |> terra::project(puid)
+  # }
+  # assertthat::assert_that(crs(all.pa) == crs(puid))
+  #
+  # if(terra::crs(puid) != terra::crs(st.pa)){
+  #   st.pa <- st.pa |> terra::project(puid)
+  # }
+  # assertthat::assert_that(crs(st.pa) == crs(puid))
+  #
+  # if(terra::crs(puid) != terra::crs(n2k)){
+  #   n2k <- n2k |> terra::project(puid)
+  # }
+  # assertthat::assert_that(crs(n2k) == crs(puid))
 
   puid <- puid %>% mask(countries)
   puid_area <- puid
@@ -47,9 +44,9 @@ pi.mean.patch.size <- function(ll, puid, all.pa, st.pa, n2k, countries, bioregio
   ee <- ll %>% rast() %>% extend(puid) %>% mask(countries)
   existing_pa_names <- c(basename(ll))
 
-  # stack layers
-  ee <- c(ee, all.pa, st.pa, n2k)
-  existing_pa_names <- c(existing_pa_names, "Existing all PA", "Existing strict PA", "Existing N2K")
+  # # stack layers
+  # ee <- c(ee, all.pa, st.pa, n2k)
+  # existing_pa_names <- c(existing_pa_names, "Existing all PA", "Existing strict PA", "Existing N2K")
 
   # Mask puid layer to the solution layer to ensure spatial alignment
   puid <- puid %>% mask(ee[[1]])
@@ -73,6 +70,8 @@ pi.mean.patch.size <- function(ll, puid, all.pa, st.pa, n2k, countries, bioregio
   #ee <- list(all.pa, st.pa, n2k)
   #ee <- rast(ll) %>% mask(countries)
   #ee <- ee %>% mask(puid)
+
+  co.dissolve <- sf::st_union(countries)
 
   message(paste0("Number of planning units in solution files = ", sum(!is.na(values(ee[[1]])))))
   message(paste0("Number of planning units in puid file = ", sum(!is.na(values(puid)))))

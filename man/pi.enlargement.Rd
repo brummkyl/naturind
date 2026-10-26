@@ -7,12 +7,11 @@
 pi.enlargement(
   ll,
   puid,
-  all.pa,
-  st.pa,
-  n2k,
+  ref.pa,
+  st.pa = NULL,
   countries,
   bioregion,
-  pa.ref = "all.pa",
+  ref.pa.name = "all.pa",
   strict = FALSE,
   pae_threshold,
   project.name,
@@ -24,17 +23,15 @@ pi.enlargement(
 
 \item{puid}{A SpatRaster layer with planning units}
 
-\item{all.pa}{A SpatRaster layer with all existing protected areas}
+\item{ref.pa}{A SpatRaster layer with existing protected areas to be used as the baseline for calculating expansion areas}
 
 \item{st.pa}{A SpatRaster layer with all existing strict protected areas}
-
-\item{n2k}{A SpatRaster layer with all existing Natura 2000 protected areas (or any other unique subset of PAs)}
 
 \item{countries}{An sf vector layer containing individual countries}
 
 \item{bioregion}{An sf vector layer containing individual biogeographic regions}
 
-\item{pa.ref}{A character string specifying which protected area raster should be used as the baseline reference layer when calculating Queen's distances. For example, are you expanding on "all.pa" or "n2k"?}
+\item{ref.pa.name}{A character string specifying which protected area raster should be used as the baseline reference layer when calculating Queen's distances. For example, are you expanding on "all.pa" or "n2k"?}
 
 \item{strict}{A logical, specifying whether your ll files represent strict expansion priorities}
 
@@ -52,8 +49,8 @@ Protected Area Enlargement
 }
 \examples{
 \dontrun{
-pi.enlargement(ll = "C:/.../solution_file.tif", puid, all.pa, st.pa, n2k, variants,
-                countries, bioregion, pa.ref = "all.pa", strict = FALSE,
+pi.enlargement(ll = "C:/.../solution_file.tif", puid, ref.pa, st.pa = NULL,
+                countries, bioregion, ref.pa.name = "all.pa", strict = FALSE,
                 pae_threshold, project.name = "Example Project", version = "Version 1")
 }
 }

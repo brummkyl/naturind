@@ -4,35 +4,16 @@
 \alias{pi.transboundary}
 \title{Transboundary Protection}
 \usage{
-pi.transboundary(
-  ll,
-  puid,
-  all.pa,
-  st.pa,
-  n2k,
-  countries,
-  bioregion,
-  tb.buffers,
-  project.name,
-  version
-)
+pi.transboundary(ll, puid, countries, tb.buffers, project.name, version)
 }
 \arguments{
 \item{ll}{A character vector containing file paths of raster files (e.g., spatial prioritization outputs) in '.tif' format.}
 
 \item{puid}{A SpatRaster layer with planning units}
 
-\item{all.pa}{A SpatRaster layer with all existing protected areas}
-
-\item{st.pa}{A SpatRaster layer with all existing strict protected areas}
-
-\item{n2k}{A SpatRaster layer with all existing Natura 2000 protected areas (or any other unique subset of PAs)}
-
 \item{countries}{An sf vector layer containing individual countries}
 
-\item{bioregion}{An sf vector layer containing individual biogeographic regions}
-
-\item{tb.buffers}{An sf vector layer containing a transboundary region}
+\item{tb.buffers}{An sf vector layer containing a transboundary region. See the 'create.tb.buffer' function.}
 
 \item{project.name}{A character vector specifying the name of your project}
 
@@ -46,8 +27,8 @@ Transboundary Protection
 }
 \examples{
 \dontrun{
-pi.transboundary(ll = "C:/.../solution_file.tif", puid, all.pa, st.pa, n2k, countries,
-                  bioregion, tb.buffers, project.name = "Example Project",
+pi.transboundary(ll = "C:/.../solution_file.tif", puid, countries,
+                  tb.buffers, project.name = "Example Project",
                   version = "Version 1")
 }
 }

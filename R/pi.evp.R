@@ -4,9 +4,6 @@
 #' @param puid A SpatRaster layer with planning units
 #' @param puid.num A SpatRaster layer with unique identifiers (i.e., cell positions) for each planning unit
 #' @param countries An sf vector layer containing individual countries
-#' @param all.pa A SpatRaster layer with all existing protected areas
-#' @param st.pa A SpatRaster layer with all existing strict protected areas
-#' @param n2k A SpatRaster layer with all existing Natura 2000 protected areas (or any other unique subset of PAs)
 #' @param feat.info A dataframe containing attributes for each feature. Useful for sub-setting e.g., species, habitats.
 #' @param rij An rij matrix with features as rows and unique planning unit identifiers as columns
 #' @param project.name A character vector specifying the name of your project
@@ -23,12 +20,12 @@
 #' @examples
 #' \dontrun{
 #' pi.evp(ll = "C:/.../solution_file.tif", puid, puid.num, countries,
-#'         all.pa, st.pa, n2k, feat.info, rij, project.name = "Example Project",
+#'         feat.info, rij, project.name = "Example Project",
 #'         version = "Version 1", countries.sub, countries.sub2,
 #'         bioregion.sub, bioregion.sub2, edge.out)
 #'}
 
-pi.evp <- function(ll, puid, puid.num, countries, all.pa, st.pa, n2k, feat.info = p, rij = y, project.name, version,
+pi.evp <- function(ll, puid, puid.num, countries, feat.info = p, rij = y, project.name, version,
                    countries.sub, countries.sub2, bioregion.sub, bioregion.sub2, edge.out){
 
   outdir <- paste0("performance_outputs/", version)
@@ -37,36 +34,47 @@ pi.evp <- function(ll, puid, puid.num, countries, all.pa, st.pa, n2k, feat.info 
   # Deep-copy every terra object you might mutate, before doing anything else
   puid      <- terra::deepcopy(puid)
   puid.num  <- terra::deepcopy(puid.num)
-  all.pa    <- terra::deepcopy(all.pa)
-  st.pa     <- terra::deepcopy(st.pa)
-  n2k       <- terra::deepcopy(n2k)
+  # all.pa    <- terra::deepcopy(all.pa)
+  # st.pa     <- terra::deepcopy(st.pa)
+  # n2k       <- terra::deepcopy(n2k)
 
   puid <- puid %>% mask(countries)
   puid.num <- puid.num %>% mask(countries)
+
+  country.id <- countries.sub2$id[!is.na(countries.sub2$MS)]
+  bioregion.id <- bioregion.sub2$id[!is.na(bioregion.sub2$BGR)]
+  assertthat::assert_that(length(country.id) == length(bioregion.id))
+
+  if(sum(!is.na(terra::values(puid))) != length(country.id)){
+    message("Planning units appear to be missing regional associations in the '.sub2' data frames. Planning unit and solution rasters (ll) will be adjusted accordingly.")
+    drop_cells <- setdiff(seq_len(terra::ncell(puid)), country.id)
+    puid[drop_cells] <- NA
+    puid.num[drop_cells] <- NA
+  }
 
   p <- feat.info
   y <- rij
 
   ee <- ll %>% rast() %>% extend(puid) %>% mask(countries)
   existing_pa_names <- c(basename(ll))
-
-  if(terra::crs(puid) != terra::crs(all.pa)){
-    all.pa <- all.pa |> terra::project(puid)
-  }
-  assertthat::assert_that(crs(all.pa) == crs(puid))
-
-  if(terra::crs(puid) != terra::crs(st.pa)){
-    st.pa <- st.pa |> terra::project(puid)
-  }
-  assertthat::assert_that(crs(st.pa) == crs(puid))
-
-  if(terra::crs(puid) != terra::crs(n2k)){
-    n2k <- n2k |> terra::project(puid)
-  }
-  assertthat::assert_that(crs(n2k) == crs(puid))
-
-  ee <- c(ee, all.pa, st.pa, n2k)
-  existing_pa_names <- c(existing_pa_names, "Existing all PA", "Existing strict PA", "Existing N2K")
+  #
+  # if(terra::crs(puid) != terra::crs(all.pa)){
+  #   all.pa <- all.pa |> terra::project(puid)
+  # }
+  # assertthat::assert_that(crs(all.pa) == crs(puid))
+  #
+  # if(terra::crs(puid) != terra::crs(st.pa)){
+  #   st.pa <- st.pa |> terra::project(puid)
+  # }
+  # assertthat::assert_that(crs(st.pa) == crs(puid))
+  #
+  # if(terra::crs(puid) != terra::crs(n2k)){
+  #   n2k <- n2k |> terra::project(puid)
+  # }
+  # assertthat::assert_that(crs(n2k) == crs(puid))
+  #
+  # ee <- c(ee, all.pa, st.pa, n2k)
+  # existing_pa_names <- c(existing_pa_names, "Existing all PA", "Existing strict PA", "Existing N2K")
   # Check whether all layers already have the same NA footprint as ee[[1]]
   # This is used to adjust baseline existing PA calculations, for consistency with the provided planning solutions
   # One use case, for example, is to allow shifting between Europe and EU extents
@@ -86,7 +94,7 @@ pi.evp <- function(ll, puid, puid.num, countries, all.pa, st.pa, n2k, feat.info 
     ee <- ee %>% mask(ee[[1]])
   }
 
-  #ee <- ee %>% mask(puid)
+  ee <- ee %>% mask(puid)
   #ee <- ee %>% mask(ee[[1]])
 
   puid <- puid %>% mask(ee[[1]])
@@ -195,6 +203,12 @@ pi.evp <- function(ll, puid, puid.num, countries, all.pa, st.pa, n2k, feat.info 
                      pi = as.numeric(Matrix::rowSums(rij_sel)),
                      ov.avail = as.numeric(Matrix::rowSums(rij2)))
 
+    drop.features <- ta$feature[ta$ov.avail == 0]
+    row.id.drop <- which(!rownames(rij_sel) %in% drop.features)
+    rij_sel <- rij_sel[row.id.drop, , drop = FALSE]
+    rij2 <- rij2[row.id.drop, , drop = FALSE]
+    features<-features[!features$name %in% drop.features,]
+
     ta <- ta[ta$ov.avail > 0,]
     evp.ratio <- ta$pi/ta$ov.avail
     evp.final <- pmin(evp.ratio, 1)
@@ -280,7 +294,7 @@ pi.evp <- function(ll, puid, puid.num, countries, all.pa, st.pa, n2k, feat.info 
 
     xx = data.frame(sum = rowSums(co.ov.evp.out.existing[,2:ncol(co.ov.evp.out.existing)]))
     xx2 <- data.frame(sum = pmin(as.numeric(xx[[1]]), 1, na.rm = FALSE))
-    assertthat::assert_that(abs(evp - mean(xx2$sum)) < 1e-4)
+    assertthat::assert_that(abs(evp - mean(xx2$sum)) < 1e-6)
 
     outdir.evp <- paste0(outdir, "/EVP/")
     dir.create(outdir.evp, showWarnings = FALSE)
@@ -365,7 +379,7 @@ pi.evp <- function(ll, puid, puid.num, countries, all.pa, st.pa, n2k, feat.info 
 
     yy = data.frame(sum = rowSums(bi.ov.evp.out.existing[,2:ncol(bi.ov.evp.out.existing)]))
     yy2 <- data.frame(sum = pmin(as.numeric(yy[[1]]), 1, na.rm = FALSE))
-    assertthat::assert_that(abs(evp - mean(yy2$sum)) < 1e-4)
+    assertthat::assert_that(abs(evp - mean(yy2$sum)) < 1e-6)
 
     #ofname <- paste0(outdir, "/", "EVP/", "NaturaConnect","__", version, "__",paste0("Existing ", file.name, " (", filtered[z],")"), "__indicator_EVP_Bioregion_Contribution_Percentages.csv")
     #if(consensus.sol == 1){

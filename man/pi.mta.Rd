@@ -9,9 +9,6 @@ pi.mta(
   puid,
   puid.num,
   countries,
-  all.pa,
-  st.pa,
-  n2k,
   feat.info = p,
   rij = y,
   project.name,
@@ -32,12 +29,6 @@ pi.mta(
 \item{puid.num}{A SpatRaster layer with unique identifiers (i.e., cell positions) for each planning unit}
 
 \item{countries}{An sf vector layer containing individual countries}
-
-\item{all.pa}{A SpatRaster layer with all existing protected areas}
-
-\item{st.pa}{A SpatRaster layer with all existing strict protected areas}
-
-\item{n2k}{A SpatRaster layer with all existing Natura 2000 protected areas (or any other unique subset of PAs)}
 
 \item{feat.info}{A dataframe containing attributes for each feature. Useful for sub-setting e.g., species, habitats.}
 
@@ -67,8 +58,8 @@ Mean Target Achievement
 }
 \examples{
 \dontrun{
-pi.mta(ll = "C:/.../solution_file.tif", puid, puid.num, countries, all.pa,
-        st.pa, n2k, feat.info, rij, project.name = "Example Project",
+pi.mta(ll = "C:/.../solution_file.tif", puid, puid.num, countries,
+        feat.info, rij, project.name = "Example Project",
         version = "Version 1", countries.sub, countries.sub2,
         bioregion.sub, bioregion.sub2, selection = c("species", "habitats"), separate = FALSE)
 }

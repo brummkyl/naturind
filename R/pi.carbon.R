@@ -2,9 +2,6 @@
 #'
 #' @param ll A character vector containing file paths of raster files (e.g., spatial prioritization outputs) in '.tif' format.
 #' @param puid A SpatRaster layer with planning units
-#' @param all.pa A SpatRaster layer with all existing protected areas
-#' @param st.pa A SpatRaster layer with all existing strict protected areas
-#' @param n2k A SpatRaster layer with all existing Natura 2000 protected areas (or any other unique subset of PAs)
 #' @param countries An sf vector layer containing individual countries
 #' @param bioregion An sf vector layer containing individual biogeographic regions
 #' @param carbon.stock A SpatRaster layer with carbon stock data in units of tC/ha
@@ -17,13 +14,13 @@
 #'
 #' @examples
 #' \dontrun{
-#' pi.carbon(ll = "C:/.../solution_file.tif", puid, all.pa, st.pa, n2k,
+#' pi.carbon(ll = "C:/.../solution_file.tif", puid,
 #'            countries, bioregion, carbon.stock = carbon,
 #'            carbon.sequestration = carbon.seq,
 #'            project.name = "Example Project", version = "Version 1")
 #'}
 
-pi.carbon <- function(ll, puid, all.pa, st.pa, n2k, countries, bioregion, carbon.stock = carbon, carbon.sequestration = carbon.seq, project.name, version){
+pi.carbon <- function(ll, puid, countries, bioregion, carbon.stock = carbon, carbon.sequestration = carbon.seq, project.name, version){
 
   carbon <- carbon.stock
   carbon.seq <- carbon.sequestration
@@ -39,20 +36,20 @@ pi.carbon <- function(ll, puid, all.pa, st.pa, n2k, countries, bioregion, carbon
   }
   assertthat::assert_that(crs(carbon.seq) == crs(puid))
 
-  if(terra::crs(puid) != terra::crs(all.pa)){
-    all.pa <- all.pa |> terra::project(puid)
-  }
-  assertthat::assert_that(crs(all.pa) == crs(puid))
-
-  if(terra::crs(puid) != terra::crs(st.pa)){
-    st.pa <- st.pa |> terra::project(puid)
-  }
-  assertthat::assert_that(crs(st.pa) == crs(puid))
-
-  if(terra::crs(puid) != terra::crs(n2k)){
-    n2k <- n2k |> terra::project(puid)
-  }
-  assertthat::assert_that(crs(n2k) == crs(puid))
+  # if(terra::crs(puid) != terra::crs(all.pa)){
+  #   all.pa <- all.pa |> terra::project(puid)
+  # }
+  # assertthat::assert_that(crs(all.pa) == crs(puid))
+  #
+  # if(terra::crs(puid) != terra::crs(st.pa)){
+  #   st.pa <- st.pa |> terra::project(puid)
+  # }
+  # assertthat::assert_that(crs(st.pa) == crs(puid))
+  #
+  # if(terra::crs(puid) != terra::crs(n2k)){
+  #   n2k <- n2k |> terra::project(puid)
+  # }
+  # assertthat::assert_that(crs(n2k) == crs(puid))
 
   puid <- puid %>% mask(countries)
   puid_area <- puid
@@ -61,8 +58,8 @@ pi.carbon <- function(ll, puid, all.pa, st.pa, n2k, countries, bioregion, carbon
   existing_pa_names <- c(basename(ll))
 
   # stack layers
-  ee <- c(ee, all.pa, st.pa, n2k)
-  existing_pa_names <- c(existing_pa_names, "Existing all PA", "Existing strict PA", "Existing N2K")
+  # ee <- c(ee, all.pa, st.pa, n2k)
+  # existing_pa_names <- c(existing_pa_names, "Existing all PA", "Existing strict PA", "Existing N2K")
 
   # Make an area grid - ha
   puid <- puid %>% mask(ee[[1]])
@@ -109,6 +106,8 @@ pi.carbon <- function(ll, puid, all.pa, st.pa, n2k, countries, bioregion, carbon
   # for this indicator, we only consider areas in which carbon sequestration is positive
   carbon.seq <- ifel(carbon.seq < 0, 0, carbon.seq)
 
+  co.dissolve <- sf::st_union(countries)
+
   message(paste0("Number of planning units in solution files = ", sum(!is.na(values(ee[[1]])))))
   message(paste0("Number of planning units in puid file = ", sum(!is.na(values(puid)))))
 
@@ -130,6 +129,7 @@ pi.carbon <- function(ll, puid, all.pa, st.pa, n2k, countries, bioregion, carbon
     # loop through the solution rasters
     pa.sol <- ee[[i]]
     file.name <- existing_pa_names[[i]]
+
     # multiply the proportional solution by the planning unit area by the carbon stock raster
     # output quantifies tonnes of carbon per cell conserved in the solution
     pa.sol.area <- pa.sol * 100 #* puid_area_ha
@@ -137,12 +137,20 @@ pi.carbon <- function(ll, puid, all.pa, st.pa, n2k, countries, bioregion, carbon
     pa.sol.carbon.seq <- pa.sol * 100 * carbon.seq
     ov.carbon <- puid_area_ha * carbon
     ov.carbon.seq <- puid_area_ha * carbon.seq
+
     # Overall sum
-    ov.area <- global(pa.sol.area,"sum",na.rm=TRUE)[[1]]
-    ov.carbon.tot <- global(ov.carbon,"sum",na.rm=TRUE)[[1]]
-    ov.carbon.seq.tot <- global(ov.carbon.seq,"sum",na.rm=TRUE)[[1]]
-    carbon.ov <- global(pa.sol.carbon,"sum",na.rm=TRUE)[[1]]
-    carbon.seq.ov <- global(pa.sol.carbon.seq,"sum",na.rm=TRUE)[[1]]
+    ov.area <- exactextractr::exact_extract(pa.sol.area, co.dissolve, fun="sum")
+    ov.carbon.tot <- exactextractr::exact_extract(ov.carbon, co.dissolve, fun="sum")
+    ov.carbon.seq.tot <- exactextractr::exact_extract(ov.carbon.seq, co.dissolve, fun="sum")
+    carbon.ov <- exactextractr::exact_extract(pa.sol.carbon, co.dissolve, fun="sum")
+    carbon.seq.ov <- exactextractr::exact_extract(pa.sol.carbon.seq, co.dissolve, fun="sum")
+
+    # ov.area <- global(pa.sol.area,"sum",na.rm=TRUE)[[1]]
+    # ov.carbon.tot <- global(ov.carbon,"sum",na.rm=TRUE)[[1]]
+    # ov.carbon.seq.tot <- global(ov.carbon.seq,"sum",na.rm=TRUE)[[1]]
+    # carbon.ov <- global(pa.sol.carbon,"sum",na.rm=TRUE)[[1]]
+    # carbon.seq.ov <- global(pa.sol.carbon.seq,"sum",na.rm=TRUE)[[1]]
+
     # Overall normalization
     carbon.ov.norm <- (carbon.ov/ov.area)[[1]]
     carbon.seq.ov.norm <- (carbon.seq.ov/ov.area)[[1]]
