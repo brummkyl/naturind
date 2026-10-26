@@ -5,7 +5,7 @@
 \title{Transboundary buffer file creation}
 \usage{
 create.tb.buffers(
-  regions = countries,
+  regions,
   buffer.width = 10000,
   progress = TRUE,
   plot = TRUE,
@@ -14,7 +14,7 @@ create.tb.buffers(
 )
 }
 \arguments{
-\item{regions}{An sf vector layer containing individual regions}
+\item{regions}{An sf vector layer containing individual regions (e.g., countries)}
 
 \item{buffer.width}{An integer defining the width of buffers (in meters) in either direction, i.e., the total buffer width will be 2x the defined 'buffer.width'}
 
@@ -34,7 +34,7 @@ Transboundary buffer file creation
 }
 \examples{
 \dontrun{
-tb.buffers <- create.tb.buffers(regions = countries, buffer.width = 10000, progress = TRUE,
+tb.buffers <- create.tb.buffers(regions, buffer.width = 10000, progress = TRUE,
                                  plot = TRUE, save = FALSE, outdir = NULL)
 }
 }

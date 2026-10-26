@@ -1,6 +1,6 @@
 #' Transboundary buffer file creation
 #'
-#' @param regions An sf vector layer containing individual regions
+#' @param regions An sf vector layer containing individual regions (e.g., countries)
 #' @param buffer.width An integer defining the width of buffers (in meters) in either direction, i.e., the total buffer width will be 2x the defined 'buffer.width'
 #' @param progress A logical of whether progress messages should be printed
 #' @param plot A logical of whether the resulting layer should be plotted
@@ -12,11 +12,11 @@
 #'
 #' @examples
 #' \dontrun{
-#' tb.buffers <- create.tb.buffers(regions = countries, buffer.width = 10000, progress = TRUE,
+#' tb.buffers <- create.tb.buffers(regions, buffer.width = 10000, progress = TRUE,
 #'                                  plot = TRUE, save = FALSE, outdir = NULL)
 #'}
 
-create.tb.buffers <- function(regions = countries, buffer.width = 10000, progress = TRUE, plot = TRUE, save = FALSE, outdir = NULL){
+create.tb.buffers <- function(regions, buffer.width = 10000, progress = TRUE, plot = TRUE, save = FALSE, outdir = NULL){
 
   countries_sf <- regions
   countries_sf <- suppressWarnings(st_make_valid(countries_sf))
