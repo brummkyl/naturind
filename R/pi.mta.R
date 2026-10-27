@@ -410,7 +410,7 @@ pi.mta <- function(ll, puid, puid.num, countries, feat.info = p, rij = y, projec
   #if(consensus.sol == 1){
   #  ofname <- paste0(outdir.consensus, "/", project.name,"__",version, "__indicator_meantargetachievement.csv")
   #} else if (consensus.sol == 0){
-    ofname <- paste0(outdir, "/", project.name,"__",version, "__", h_label,"__indicator_meantargetachievement.csv")
+    ofname <- paste0(outdir, "/", project.name,"__",version, "__indicator_", h_label,"_meantargetachievement.csv")
   #}
 
   utils::write.csv(out.mta.final, ofname, row.names = FALSE)

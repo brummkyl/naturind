@@ -301,7 +301,7 @@ pi.rpz <- function(ll, puid, puid.num, countries, feat.info = p, rij = y, projec
         dir.create(outdir.rpz, showWarnings = FALSE)
 
         #ofname <- paste0(outdir, "/", "EVP/", "NaturaConnect","__", version, "__",paste0("Existing ", file.name, " (", filtered[z],")"), "__indicator_EVP_Country_Contribution_Percentages.csv")
-        ofname <- paste0(outdir.rpz, project.name,"__", version, "__",paste0(file.name, "__indicator_RPZ_",h_label,"Country_Contribution_Percentages.csv"))
+        ofname <- paste0(outdir.rpz, project.name,"__", version, "__",paste0(file.name, "__indicator_RPZ_",h_label,"_Country_Contribution_Percentages.csv"))
 
         write.csv(co.ov.evp.out.existing, ofname, row.names = FALSE)
         co.ov.evp.out.existing <- data.frame()
@@ -381,7 +381,7 @@ pi.rpz <- function(ll, puid, puid.num, countries, feat.info = p, rij = y, projec
         assertthat::assert_that(abs(evp - mean(yy2$sum)) < 1e-6)
 
         #ofname <- paste0(outdir, "/", "EVP/", "NaturaConnect","__", version, "__",paste0("Existing ", file.name, " (", filtered[z],")"), "__indicator_EVP_Bioregion_Contribution_Percentages.csv")
-        ofname <- paste0(outdir.rpz, project.name,"__", version, "__",paste0(file.name, "__indicator_RPZ_",h_label,"Bioregion_Contribution_Percentages.csv"))
+        ofname <- paste0(outdir.rpz, project.name,"__", version, "__",paste0(file.name, "__indicator_RPZ_",h_label,"_Bioregion_Contribution_Percentages.csv"))
 
         write.csv(bi.ov.evp.out.existing, ofname, row.names = FALSE)
         bi.ov.evp.out.existing <- data.frame()
@@ -397,7 +397,7 @@ pi.rpz <- function(ll, puid, puid.num, countries, feat.info = p, rij = y, projec
   out.evp.final$value <- out.evp.final$value * 100
 
   #ofname <- paste0(outdir, "/", "NaturaConnect","__",version, "__indicator_evolutionarypotential.csv")
-    ofname <- paste0(outdir, "/", project.name,"__",version, "__", h_label, "__indicator_meanrepresentation.csv")
+    ofname <- paste0(outdir, "/", project.name,"__",version, "__indicator_", h_label, "_meanrepresentation.csv")
     write.csv(out.evp.final, ofname, row.names = FALSE)
 
   if(intermediate == TRUE){
