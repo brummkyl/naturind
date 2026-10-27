@@ -24,9 +24,9 @@ pi.es(
 
 \item{bioregion}{An sf vector layer containing individual biogeographic regions}
 
-\item{pollination}{A SpatRaster layer quantifying pollination supply in units of m^2}
+\item{pollination}{A SpatRaster layer quantifying pollination supply, or any other layer of interest, in units of square meters}
 
-\item{capdem}{A SpatRaster layer quantifying species-based ES supply}
+\item{capdem}{A SpatRaster layer quantifying species-based ES supply, or any other layer of interest, in units of square kilometers (or otherwise dimensionless)}
 
 \item{project.name}{A character vector specifying the name of your project}
 

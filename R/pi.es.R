@@ -4,8 +4,8 @@
 #' @param puid A SpatRaster layer with planning units
 #' @param countries An sf vector layer containing individual countries
 #' @param bioregion An sf vector layer containing individual biogeographic regions
-#' @param pollination A SpatRaster layer quantifying pollination supply in units of m^2
-#' @param capdem A SpatRaster layer quantifying species-based ES supply
+#' @param pollination A SpatRaster layer quantifying pollination supply, or any other layer of interest, in units of square meters
+#' @param capdem A SpatRaster layer quantifying species-based ES supply, or any other layer of interest, in units of square kilometers (or otherwise dimensionless)
 #' @param project.name A character vector specifying the name of your project
 #' @param version A character vector specifying the version (e.g., date) of your workflow
 #'
