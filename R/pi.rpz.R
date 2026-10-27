@@ -115,6 +115,8 @@ pi.rpz <- function(ll, puid, puid.num, countries, feat.info = p, rij = y, projec
     }
   })
 
+  message(paste0("Number of planning units = ", ncol(y)))
+
   #######################################################################################
 
   # EXISTING PROTECTED AREAS
@@ -136,7 +138,7 @@ pi.rpz <- function(ll, puid, puid.num, countries, feat.info = p, rij = y, projec
   co.evp.out.existing <- data.frame()
   bi.evp.out.existing <- data.frame()
   ta.list <- list()
-  pb <- progress::progress_bar$new(total = nlyr(ee) * 2)
+  pb <- progress::progress_bar$new(total = nlyr(ee) * n_passes)
 
   tic()
   for(h in groups){
@@ -208,7 +210,7 @@ pi.rpz <- function(ll, puid, puid.num, countries, feat.info = p, rij = y, projec
       ta$final <- pmin(ta$ratio, 1)
       evp <- mean(ta$final, na.rm=TRUE)
 
-      ta.list[[paste(file.name, h, sep = "__")]] <- ta
+      ta.list[[paste(file.name, h_label, sep = "__")]] <- ta
 
       m <- data.frame(project = paste0(project.name,"__",version),
                       scenario = file.name,
@@ -395,7 +397,7 @@ pi.rpz <- function(ll, puid, puid.num, countries, feat.info = p, rij = y, projec
   out.evp.final$value <- out.evp.final$value * 100
 
   #ofname <- paste0(outdir, "/", "NaturaConnect","__",version, "__indicator_evolutionarypotential.csv")
-    ofname <- paste0(outdir, "/", project.name,"__",version, "__", h_label, "indicator_meanrepresentation.csv")
+    ofname <- paste0(outdir, "/", project.name,"__",version, "__", h_label, "__indicator_meanrepresentation.csv")
     write.csv(out.evp.final, ofname, row.names = FALSE)
 
   if(intermediate == TRUE){
