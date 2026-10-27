@@ -13,6 +13,7 @@ export(pi.mean.patch.size)
 export(pi.mean.patch.size.vector)
 export(pi.mta)
 export(pi.oppcosts)
+export(pi.rpz)
 export(pi.transboundary)
 importFrom(Makurhini,MK_ProtConn)
 importFrom(Matrix,

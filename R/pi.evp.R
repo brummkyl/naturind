@@ -219,7 +219,7 @@ pi.evp <- function(ll, puid, puid.num, countries, feat.info = p, rij = y, projec
     ta$final <- pmin(ta$ratio, 1)
     evp <- mean(ta$final, na.rm=TRUE)
 
-    ta.list[[paste(file.name, h, sep = "__")]] <- ta
+    ta.list[[paste(file.name)]] <- ta
 
     m <- data.frame(project = paste0(project.name,"__",version),
                     scenario = file.name,
