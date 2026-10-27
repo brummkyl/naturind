@@ -18,7 +18,9 @@ pi.mta(
   bioregion.sub,
   bioregion.sub2,
   selection = c("species", "habitats"),
-  separate = FALSE
+  separate = FALSE,
+  regional.metrics = TRUE,
+  intermediate = TRUE
 )
 }
 \arguments{
@@ -30,7 +32,7 @@ pi.mta(
 
 \item{countries}{An sf vector layer containing individual countries}
 
-\item{feat.info}{A dataframe containing attributes for each feature. Useful for sub-setting e.g., species, habitats.}
+\item{feat.info}{A dataframe containing attributes for each feature. Useful for sub-setting e.g., species, habitats. Requires columns: 'name' = names of features; 'feat_type' = e.g., species, habitats, or any other character name specified in 'selection'; 'total_range_size' = double numeric quantifying the total distribution or range area of each feature; 'target area' = double numeric quantifying the targeted area to be conserved for each feature}
 
 \item{rij}{An rij matrix with features as rows and unique planning unit identifiers as columns}
 
@@ -49,6 +51,10 @@ pi.mta(
 \item{selection}{A character vector specifying which feature subsets you would like to calculate MTA for (e.g., c("species", "habitats"); "species"; "habitats")}
 
 \item{separate}{A logical indicating whether you would like to calculate MTA separately for each group specified in the 'selection' argument. e.g., If selection = c("species", "habitats") and separate = TRUE, MTA will be calculated first for species, and then separately for habitats. In this example, if separate = FALSE, then a single estimate of MTA will be calculated for the combination of species and habitats}
+
+\item{regional.metrics}{A logical of whether metrics should be calculated for countries and biogeographic regions}
+
+\item{intermediate}{A logical of whether intermediate values should be returned for each individual feature}
 }
 \value{
 A formatted .csv file saved to the "performance_outputs/version" directory
@@ -61,6 +67,7 @@ Mean Target Achievement
 pi.mta(ll = "C:/.../solution_file.tif", puid, puid.num, countries,
         feat.info, rij, project.name = "Example Project",
         version = "Version 1", countries.sub, countries.sub2,
-        bioregion.sub, bioregion.sub2, selection = c("species", "habitats"), separate = FALSE)
+        bioregion.sub, bioregion.sub2, selection = c("species", "habitats"), separate = FALSE,
+        regional.metrics = TRUE, intermediate = TRUE)
 }
 }

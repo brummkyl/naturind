@@ -4,7 +4,7 @@
 #' @param puid A SpatRaster layer with planning units
 #' @param puid.num A SpatRaster layer with unique identifiers (i.e., cell positions) for each planning unit
 #' @param countries An sf vector layer containing individual countries
-#' @param feat.info A dataframe containing attributes for each feature. Useful for sub-setting e.g., species, habitats.
+#' @param feat.info A dataframe containing attributes for each feature. Useful for sub-setting e.g., species, habitats. Requires columns: 'name' = names of features; 'feat_type' = e.g., species, habitats, or any other character name specified in 'selection'; 'total_range_size' = double numeric quantifying the total distribution or range area of each feature; 'target area' = double numeric quantifying the targeted area to be conserved for each feature
 #' @param rij An rij matrix with features as rows and unique planning unit identifiers as columns
 #' @param project.name A character vector specifying the name of your project
 #' @param version A character vector specifying the version (e.g., date) of your workflow
@@ -14,6 +14,8 @@
 #' @param bioregion.sub2 A dataframe containing two columns: 'id' as in puid.num's unique identifiers; 'names' as in bioregion.sub
 #' @param selection A character vector specifying which feature subsets you would like to calculate MTA for (e.g., c("species", "habitats"); "species"; "habitats")
 #' @param separate A logical indicating whether you would like to calculate MTA separately for each group specified in the 'selection' argument. e.g., If selection = c("species", "habitats") and separate = TRUE, MTA will be calculated first for species, and then separately for habitats. In this example, if separate = FALSE, then a single estimate of MTA will be calculated for the combination of species and habitats
+#' @param regional.metrics A logical of whether metrics should be calculated for countries and biogeographic regions
+#' @param intermediate A logical of whether intermediate values should be returned for each individual feature
 #'
 #' @returns A formatted .csv file saved to the "performance_outputs/version" directory
 #' @export
@@ -23,11 +25,13 @@
 #' pi.mta(ll = "C:/.../solution_file.tif", puid, puid.num, countries,
 #'         feat.info, rij, project.name = "Example Project",
 #'         version = "Version 1", countries.sub, countries.sub2,
-#'         bioregion.sub, bioregion.sub2, selection = c("species", "habitats"), separate = FALSE)
+#'         bioregion.sub, bioregion.sub2, selection = c("species", "habitats"), separate = FALSE,
+#'         regional.metrics = TRUE, intermediate = TRUE)
 #'}
 
 pi.mta <- function(ll, puid, puid.num, countries, feat.info = p, rij = y, project.name, version,
-                   countries.sub, countries.sub2, bioregion.sub, bioregion.sub2, selection = c("species", "habitats"), separate = FALSE){
+                   countries.sub, countries.sub2, bioregion.sub, bioregion.sub2, selection = c("species", "habitats"), separate = FALSE,
+                   regional.metrics = TRUE, intermediate = TRUE){
 
   outdir <- paste0("performance_outputs/", version)
   dir.create(outdir, showWarnings = FALSE)
@@ -139,6 +143,7 @@ pi.mta <- function(ll, puid, puid.num, countries, feat.info = p, rij = y, projec
   bi.ov.mta.out.existing <- data.frame()
   co.mta.out.existing <- data.frame()
   bi.mta.out.existing <- data.frame()
+  ta.list <- list()
   pb <- progress::progress_bar$new(total = terra::nlyr(ee) * n_passes) # Here we multiply by the total length of h specified in the first loop below, depending on whether separate = TRUE or FALSE
 
   tictoc::tic()
@@ -213,9 +218,11 @@ pi.mta <- function(ll, puid, puid.num, countries, feat.info = p, rij = y, projec
       # pi = total amount of each feature selected in the solution
       # ti = initial (absolute) target
       ta <- ta[ta$ti > 0,]
-      ta.ratio <- ta$pi/ta$ti
-      ta.final <- pmin(ta.ratio, 1)
-      mta <- mean(ta.final, na.rm=TRUE)
+      ta$ratio <- ta$pi/ta$ti # could exceed 100%
+      ta$final <- pmin(ta$ratio, 1) # capped at 100%
+      mta <- mean(ta$final, na.rm=TRUE)
+
+      ta.list[[paste(file.name, h, sep = "__")]] <- ta
 
       m <- data.frame(project = paste0(project.name,"__",version),
                       scenario = file.name,
@@ -228,6 +235,8 @@ pi.mta <- function(ll, puid, puid.num, countries, feat.info = p, rij = y, projec
       mta.out.existing <- rbind(mta.out.existing, m)
 
       gc()
+
+      if(regional.metrics == TRUE){
 
       # Countries
       for (j in 1:nrow(countries.sub)) {
@@ -389,7 +398,7 @@ pi.mta <- function(ll, puid, puid.num, countries, feat.info = p, rij = y, projec
       bi.ov.mta.out.existing <- data.frame()
 
       gc()
-
+      }
     }
   }
   tictoc::toc()
@@ -405,6 +414,10 @@ pi.mta <- function(ll, puid, puid.num, countries, feat.info = p, rij = y, projec
   #}
 
   utils::write.csv(out.mta.final, ofname, row.names = FALSE)
+
+  if(intermediate == TRUE){
+    return(ta.list)
+  }
 
   message("Mean target achievement calculation done")
 

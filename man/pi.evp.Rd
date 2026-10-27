@@ -17,7 +17,9 @@ pi.evp(
   countries.sub2,
   bioregion.sub,
   bioregion.sub2,
-  edge.out
+  edge.out,
+  regional.metrics = TRUE,
+  intermediate = TRUE
 )
 }
 \arguments{
@@ -29,7 +31,7 @@ pi.evp(
 
 \item{countries}{An sf vector layer containing individual countries}
 
-\item{feat.info}{A dataframe containing attributes for each feature. Useful for sub-setting e.g., species, habitats.}
+\item{feat.info}{A dataframe containing attributes for each feature. Useful for sub-setting e.g., species, habitats. Requires columns: 'name' = names of features; 'total_range_size' = double numeric quantifying the total distribution or range area of each feature}
 
 \item{rij}{An rij matrix with features as rows and unique planning unit identifiers as columns}
 
@@ -46,6 +48,10 @@ pi.evp(
 \item{bioregion.sub2}{A dataframe containing two columns: 'id' as in puid.num's unique identifiers; 'names' as in bioregion.sub}
 
 \item{edge.out}{A dataframe with a character column, 'edge', containing EDGE species scientific names}
+
+\item{regional.metrics}{A logical of whether metrics should be calculated for countries and biogeographic regions}
+
+\item{intermediate}{A logical of whether intermediate values should be returned for each individual feature}
 }
 \value{
 A formatted .csv file saved to the "performance_outputs/version" directory
@@ -58,6 +64,7 @@ Evolutionary Potential
 pi.evp(ll = "C:/.../solution_file.tif", puid, puid.num, countries,
         feat.info, rij, project.name = "Example Project",
         version = "Version 1", countries.sub, countries.sub2,
-        bioregion.sub, bioregion.sub2, edge.out)
+        bioregion.sub, bioregion.sub2, edge.out,
+        regional.metrics = TRUE, intermediate = TRUE)
 }
 }

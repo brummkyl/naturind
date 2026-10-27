@@ -4,7 +4,7 @@
 #' @param puid A SpatRaster layer with planning units
 #' @param puid.num A SpatRaster layer with unique identifiers (i.e., cell positions) for each planning unit
 #' @param countries An sf vector layer containing individual countries
-#' @param feat.info A dataframe containing attributes for each feature. Useful for sub-setting e.g., species, habitats.
+#' @param feat.info A dataframe containing attributes for each feature. Useful for sub-setting e.g., species, habitats. Requires columns: 'name' = names of features; 'total_range_size' = double numeric quantifying the total distribution or range area of each feature
 #' @param rij An rij matrix with features as rows and unique planning unit identifiers as columns
 #' @param project.name A character vector specifying the name of your project
 #' @param version A character vector specifying the version (e.g., date) of your workflow
@@ -13,6 +13,8 @@
 #' @param bioregion.sub A dataframe containing two columns: 'names' = region names; 'codes' = code names for regions
 #' @param bioregion.sub2 A dataframe containing two columns: 'id' as in puid.num's unique identifiers; 'names' as in bioregion.sub
 #' @param edge.out A dataframe with a character column, 'edge', containing EDGE species scientific names
+#' @param regional.metrics A logical of whether metrics should be calculated for countries and biogeographic regions
+#' @param intermediate A logical of whether intermediate values should be returned for each individual feature
 #'
 #' @returns A formatted .csv file saved to the "performance_outputs/version" directory
 #' @export
@@ -22,11 +24,13 @@
 #' pi.evp(ll = "C:/.../solution_file.tif", puid, puid.num, countries,
 #'         feat.info, rij, project.name = "Example Project",
 #'         version = "Version 1", countries.sub, countries.sub2,
-#'         bioregion.sub, bioregion.sub2, edge.out)
+#'         bioregion.sub, bioregion.sub2, edge.out,
+#'         regional.metrics = TRUE, intermediate = TRUE)
 #'}
 
 pi.evp <- function(ll, puid, puid.num, countries, feat.info = p, rij = y, project.name, version,
-                   countries.sub, countries.sub2, bioregion.sub, bioregion.sub2, edge.out){
+                   countries.sub, countries.sub2, bioregion.sub, bioregion.sub2, edge.out,
+                   regional.metrics = TRUE, intermediate = TRUE){
 
   outdir <- paste0("performance_outputs/", version)
   dir.create(outdir, showWarnings = FALSE)
@@ -147,6 +151,7 @@ pi.evp <- function(ll, puid, puid.num, countries, feat.info = p, rij = y, projec
   bi.ov.evp.out.existing <- data.frame()
   co.evp.out.existing <- data.frame()
   bi.evp.out.existing <- data.frame()
+  ta.list <- list()
   pb <- progress::progress_bar$new(total = nlyr(ee))
 
   tic()
@@ -154,7 +159,7 @@ pi.evp <- function(ll, puid, puid.num, countries, feat.info = p, rij = y, projec
     pb$tick()
 
     pa.sol <- ee[[i]]
-    pa.sol <- pa.sol %>% crop(puid) %>% mask(puid)
+    #pa.sol <- pa.sol %>% crop(puid) %>% mask(puid)
     file.name <- existing_pa_names[[i]]
 
     mat <- terra::values(pa.sol, mat = FALSE,na.rm=TRUE)
@@ -210,9 +215,11 @@ pi.evp <- function(ll, puid, puid.num, countries, feat.info = p, rij = y, projec
     features<-features[!features$name %in% drop.features,]
 
     ta <- ta[ta$ov.avail > 0,]
-    evp.ratio <- ta$pi/ta$ov.avail
-    evp.final <- pmin(evp.ratio, 1)
-    evp <- mean(evp.final, na.rm=TRUE)
+    ta$ratio <- ta$pi/ta$ov.avail
+    ta$final <- pmin(ta$ratio, 1)
+    evp <- mean(ta$final, na.rm=TRUE)
+
+    ta.list[[paste(file.name, h, sep = "__")]] <- ta
 
     m <- data.frame(project = paste0(project.name,"__",version),
                     scenario = file.name,
@@ -223,6 +230,8 @@ pi.evp <- function(ll, puid, puid.num, countries, feat.info = p, rij = y, projec
                     value = evp)
 
     evp.out.existing <- rbind(evp.out.existing, m)
+
+    if(regional.metrics == TRUE){
 
     # Countries
     for (j in 1:nrow(countries.sub)) {
@@ -390,6 +399,9 @@ pi.evp <- function(ll, puid, puid.num, countries, feat.info = p, rij = y, projec
 
     write.csv(bi.ov.evp.out.existing, ofname, row.names = FALSE)
     bi.ov.evp.out.existing <- data.frame()
+
+    gc()
+    }
   }
   #}
   toc()
@@ -407,6 +419,11 @@ pi.evp <- function(ll, puid, puid.num, countries, feat.info = p, rij = y, projec
   #}
 
   write.csv(out.evp.final, ofname, row.names = FALSE)
+
+
+  if(intermediate == TRUE){
+    return(ta.list)
+  }
 
   message("Evolutionary potential calculation done. Don't forget to create/update variable definitions")
 }
