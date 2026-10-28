@@ -138,11 +138,8 @@ pi.mta <- function(ll, puid, puid.num, countries, feat.info = p, rij = y, projec
   groups <- if (separate) as.list(selection) else list(selection)
 
   # Initialize output containers
-  mta.out.existing <- data.frame()
   co.ov.mta.out.existing <- data.frame()
   bi.ov.mta.out.existing <- data.frame()
-  co.mta.out.existing <- data.frame()
-  bi.mta.out.existing <- data.frame()
   ta.list <- list()
   pb <- progress::progress_bar$new(total = terra::nlyr(ee) * n_passes) # Here we multiply by the total length of h specified in the first loop below, depending on whether separate = TRUE or FALSE
 
@@ -151,6 +148,10 @@ pi.mta <- function(ll, puid, puid.num, countries, feat.info = p, rij = y, projec
   for(h in groups){
 
     h_label <- paste(h, collapse = "_")
+
+    mta.out.existing <- data.frame()
+    co.mta.out.existing <- data.frame()
+    bi.mta.out.existing <- data.frame()
 
     for(i in 1:terra::nlyr(ee)) {
       pb$tick()
@@ -397,23 +398,19 @@ pi.mta <- function(ll, puid, puid.num, countries, feat.info = p, rij = y, projec
       utils::write.csv(bi.ov.mta.out.existing, ofname, row.names = FALSE)
       bi.ov.mta.out.existing <- data.frame()
 
-      gc()
+        gc()
       }
     }
+
+    # Bind results for overall, bioregions, and countries. export to output directory
+    out.mta.final <- rbind(mta.out.existing, co.mta.out.existing, bi.mta.out.existing)
+    out.mta.final$value <- out.mta.final$value * 100
+
+    ofname <- paste0(outdir, "/", project.name,"__",version, "__indicator_", h_label,"_meantargetachievement.csv")
+    utils::write.csv(out.mta.final, ofname, row.names = FALSE)
+
   }
   tictoc::toc()
-
-  # Bind results for overall, bioregions, and countries. export to output directory
-  out.mta.final <- rbind(mta.out.existing, co.mta.out.existing, bi.mta.out.existing)
-  out.mta.final$value <- out.mta.final$value * 100
-
-  #if(consensus.sol == 1){
-  #  ofname <- paste0(outdir.consensus, "/", project.name,"__",version, "__indicator_meantargetachievement.csv")
-  #} else if (consensus.sol == 0){
-    ofname <- paste0(outdir, "/", project.name,"__",version, "__indicator_", h_label,"_meantargetachievement.csv")
-  #}
-
-  utils::write.csv(out.mta.final, ofname, row.names = FALSE)
 
   if(intermediate == TRUE){
     return(ta.list)

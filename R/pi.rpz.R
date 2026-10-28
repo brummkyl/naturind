@@ -132,11 +132,8 @@ pi.rpz <- function(ll, puid, puid.num, countries, feat.info = p, rij = y, projec
 
   # Load the .RData container for individual problems/solutions
   # Loop through target environments here
-  evp.out.existing <- data.frame()
   co.ov.evp.out.existing <- data.frame()
   bi.ov.evp.out.existing <- data.frame()
-  co.evp.out.existing <- data.frame()
-  bi.evp.out.existing <- data.frame()
   ta.list <- list()
   pb <- progress::progress_bar$new(total = nlyr(ee) * n_passes)
 
@@ -144,6 +141,10 @@ pi.rpz <- function(ll, puid, puid.num, countries, feat.info = p, rij = y, projec
   for(h in groups){
 
     h_label <- paste(h, collapse = "_")
+
+    evp.out.existing <- data.frame()
+    co.evp.out.existing <- data.frame()
+    bi.evp.out.existing <- data.frame()
 
     for(i in 1:nlyr(ee)) {
       pb$tick()
@@ -389,16 +390,16 @@ pi.rpz <- function(ll, puid, puid.num, countries, feat.info = p, rij = y, projec
         gc()
       }
     }
-  }
-  toc()
 
-  # Bind results for bioregions and countries, then export to output directory
-  out.evp.final <- rbind(evp.out.existing, co.evp.out.existing, bi.evp.out.existing)
-  out.evp.final$value <- out.evp.final$value * 100
+    # Bind results for bioregions and countries, then export to output directory
+    out.evp.final <- rbind(evp.out.existing, co.evp.out.existing, bi.evp.out.existing)
+    out.evp.final$value <- out.evp.final$value * 100
 
-  #ofname <- paste0(outdir, "/", "NaturaConnect","__",version, "__indicator_evolutionarypotential.csv")
     ofname <- paste0(outdir, "/", project.name,"__",version, "__indicator_", h_label, "_meanrepresentation.csv")
     write.csv(out.evp.final, ofname, row.names = FALSE)
+
+  }
+  toc()
 
   if(intermediate == TRUE){
     return(ta.list)
