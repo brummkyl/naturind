@@ -30,7 +30,7 @@ You can install the development version of naturind like so:
 ``` r
 install.packages("remotes")
 library(remotes)
-remotes::install_github("brummkyl/naturind", update = "never)
+remotes::install_github("brummkyl/naturind", upgrade = "never)
 library(naturind)
 ```
 
