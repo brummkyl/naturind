@@ -12,38 +12,37 @@
 #'
 #' @examples
 #' \dontrun{
-#' tb.buffers <- create.tb.buffers(regions, buffer.width = 10000, progress = TRUE,
-#'                                  plot = TRUE, save = FALSE, outdir = NULL)
-#'}
-
-create.tb.buffers <- function(regions, buffer.width = 10000, progress = TRUE, plot = TRUE, save = FALSE, outdir = NULL){
-
+#' tb.buffers <- create.tb.buffers(regions,
+#'   buffer.width = 10000, progress = TRUE,
+#'   plot = TRUE, save = FALSE, outdir = NULL
+#' )
+#' }
+create.tb.buffers <- function(regions, buffer.width = 10000, progress = TRUE, plot = TRUE, save = FALSE, outdir = NULL) {
   countries_sf <- regions
   countries_sf <- suppressWarnings(st_make_valid(countries_sf))
   shared_border_buffers <- list()
 
   # width = buffer distance (in meters), extending from each side of a region border
   # the joint width of transboundary buffers corresponds to width x 2
-  width = buffer.width
+  width <- buffer.width
 
-  for (i in 1:nrow(countries_sf)){
-
-    if(isTRUE(progress)){
+  for (i in 1:nrow(countries_sf)) {
+    if (isTRUE(progress)) {
       message("Processing buffer ", i, " of ", nrow(countries_sf))
     }
 
-    country_i <- countries_sf[i,]
+    country_i <- countries_sf[i, ]
 
-    for (j in (i+1):nrow(countries_sf)){
-      country_j <- countries_sf[j,]
+    for (j in (i + 1):nrow(countries_sf)) {
+      country_j <- countries_sf[j, ]
 
-      if (st_touches(country_i,country_j,sparse=FALSE)[1,1] ){
-        buffer_i <- suppressWarnings(st_buffer(country_i,dist=width))
-        buffer_j <- suppressWarnings(st_buffer(country_j,dist=width))
+      if (st_touches(country_i, country_j, sparse = FALSE)[1, 1]) {
+        buffer_i <- suppressWarnings(st_buffer(country_i, dist = width))
+        buffer_j <- suppressWarnings(st_buffer(country_j, dist = width))
 
-        shared_zone <- suppressWarnings(st_intersection(buffer_i,buffer_j))
+        shared_zone <- suppressWarnings(st_intersection(buffer_i, buffer_j))
 
-        if (nrow(shared_zone) > 0){
+        if (nrow(shared_zone) > 0) {
           shared_border_buffers[[length(shared_border_buffers) + 1]] <- shared_zone
         }
       }
@@ -52,8 +51,7 @@ create.tb.buffers <- function(regions, buffer.width = 10000, progress = TRUE, pl
 
   # Combine all shared border buffers
   if (length(shared_border_buffers) > 0) {
-
-    if(isTRUE(progress)){
+    if (isTRUE(progress)) {
       message("Combining shared border buffers...")
     }
 
@@ -65,17 +63,16 @@ create.tb.buffers <- function(regions, buffer.width = 10000, progress = TRUE, pl
 
     stopifnot(nrow(tb.buffers) == 1L)
 
-    if(isTRUE(plot)){
+    if (isTRUE(plot)) {
       plot(st_geometry(countries_sf), col = "lightgray", border = "lightgray")
       plot(st_geometry(tb.buffers), col = "red", add = TRUE)
     }
 
     message("Done! Shared border buffers stored as 'tb.buffers'")
 
-    if(isTRUE(save) && !is.null(outdir)){
-      st_write(tb.buffers, paste0(outdir, width/1000, "km_TBbuffers.gpkg"), append = FALSE)
+    if (isTRUE(save) && !is.null(outdir)) {
+      st_write(tb.buffers, paste0(outdir, width / 1000, "km_TBbuffers.gpkg"), append = FALSE)
     }
-
   } else {
     message("No shared borders found.")
   }

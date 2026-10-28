@@ -25,7 +25,7 @@ pi.evp(
 \arguments{
 \item{ll}{A character vector containing file paths of raster files (e.g., spatial prioritization outputs) in '.tif' format.}
 
-\item{puid}{A SpatRaster layer with planning units}
+\item{puid}{A SpatRaster layer, reflecting the amount of land area per planning unit}
 
 \item{puid.num}{A SpatRaster layer with unique identifiers (i.e., cell positions) for each planning unit}
 
@@ -61,10 +61,12 @@ Evolutionary Potential
 }
 \examples{
 \dontrun{
-pi.evp(ll = "C:/.../solution_file.tif", puid, puid.num, countries,
-        feat.info, rij, project.name = "Example Project",
-        version = "Version 1", countries.sub, countries.sub2,
-        bioregion.sub, bioregion.sub2, edge.out,
-        regional.metrics = TRUE, intermediate = TRUE)
+pi.evp(
+  ll = "C:/.../solution_file.tif", puid, puid.num, countries,
+  feat.info, rij, project.name = "Example Project",
+  version = "Version 1", countries.sub, countries.sub2,
+  bioregion.sub, bioregion.sub2, edge.out,
+  regional.metrics = TRUE, intermediate = TRUE
+)
 }
 }

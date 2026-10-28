@@ -9,9 +9,9 @@ pi.mean.patch.size.vector(ll.v, countries, bioregion, project.name, version)
 \arguments{
 \item{ll.v}{A named list of SpatVector layers representing protected areas}
 
-\item{countries}{An sf vector layer containing individual countries}
+\item{countries}{An sf vector layer containing individual countries, with names specified in a column named "code"}
 
-\item{bioregion}{An sf vector layer containing individual biogeographic regions}
+\item{bioregion}{An sf vector layer containing individual biogeographic regions, with names specified in a column named "code"}
 
 \item{project.name}{A character vector specifying the name of your project}
 
@@ -26,6 +26,7 @@ Mean/Median Patch Size (Vector)
 \examples{
 \dontrun{
 pi.mean.patch.size.vector(ll.v, countries, bioregion,
-                           project.name = "Example Project", version = "Version 1")
+  project.name = "Example Project", version = "Version 1"
+)
 }
 }

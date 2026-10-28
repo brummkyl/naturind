@@ -21,15 +21,15 @@ pi.enlargement(
 \arguments{
 \item{ll}{A character vector containing file paths of raster files (e.g., spatial prioritization outputs) in '.tif' format. This layer should contain the full solution (expansion priorities + existing protected areas), not just the expansion priorities.}
 
-\item{puid}{A SpatRaster layer with planning units}
+\item{puid}{A SpatRaster layer, reflecting the amount of land area per planning unit}
 
 \item{ref.pa}{A SpatRaster layer with existing protected areas to be used as the baseline for calculating expansion areas}
 
 \item{st.pa}{A SpatRaster layer with all existing strict protected areas}
 
-\item{countries}{An sf vector layer containing individual countries}
+\item{countries}{An sf vector layer containing individual countries, with names specified in a column named "code"}
 
-\item{bioregion}{An sf vector layer containing individual biogeographic regions}
+\item{bioregion}{An sf vector layer containing individual biogeographic regions, with names specified in a column named "code"}
 
 \item{ref.pa.name}{A character string specifying which protected area raster should be used as the baseline reference layer when calculating Queen's distances. For example, are you expanding on "all.pa" or "n2k"?}
 
@@ -49,8 +49,10 @@ Protected Area Enlargement
 }
 \examples{
 \dontrun{
-pi.enlargement(ll = "C:/.../solution_file.tif", puid, ref.pa, st.pa = NULL,
-                countries, bioregion, ref.pa.name = "all.pa", strict = FALSE,
-                pae_threshold, project.name = "Example Project", version = "Version 1")
+pi.enlargement(
+  ll = "C:/.../solution_file.tif", puid, ref.pa, st.pa = NULL,
+  countries, bioregion, ref.pa.name = "all.pa", strict = FALSE,
+  pae_threshold, project.name = "Example Project", version = "Version 1"
+)
 }
 }

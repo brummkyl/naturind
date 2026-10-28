@@ -1,7 +1,7 @@
 #' Mean Target Achievement
 #'
 #' @param ll A character vector containing file paths of raster files (e.g., spatial prioritization outputs) in '.tif' format.
-#' @param puid A SpatRaster layer with planning units
+#' @param puid A SpatRaster layer, reflecting the amount of land area per planning unit
 #' @param puid.num A SpatRaster layer with unique identifiers (i.e., cell positions) for each planning unit
 #' @param countries An sf vector layer containing individual countries
 #' @param feat.info A dataframe containing attributes for each feature. Useful for sub-setting e.g., species, habitats. Requires columns: 'name' = names of features; 'feat_type' = e.g., species, habitats, or any other character name specified in 'selection'; 'total_range_size' = double numeric quantifying the total distribution or range area of each feature; 'target area' = double numeric quantifying the targeted area to be conserved for each feature
@@ -22,26 +22,23 @@
 #'
 #' @examples
 #' \dontrun{
-#' pi.mta(ll = "C:/.../solution_file.tif", puid, puid.num, countries,
-#'         feat.info, rij, project.name = "Example Project",
-#'         version = "Version 1", countries.sub, countries.sub2,
-#'         bioregion.sub, bioregion.sub2, selection = c("species", "habitats"), separate = FALSE,
-#'         regional.metrics = TRUE, intermediate = TRUE)
-#'}
-
+#' pi.mta(
+#'   ll = "C:/.../solution_file.tif", puid, puid.num, countries,
+#'   feat.info, rij, project.name = "Example Project",
+#'   version = "Version 1", countries.sub, countries.sub2,
+#'   bioregion.sub, bioregion.sub2, selection = c("species", "habitats"), separate = FALSE,
+#'   regional.metrics = TRUE, intermediate = TRUE
+#' )
+#' }
 pi.mta <- function(ll, puid, puid.num, countries, feat.info = p, rij = y, project.name, version,
                    countries.sub, countries.sub2, bioregion.sub, bioregion.sub2, selection = c("species", "habitats"), separate = FALSE,
-                   regional.metrics = TRUE, intermediate = TRUE){
-
+                   regional.metrics = TRUE, intermediate = TRUE) {
   outdir <- paste0("performance_outputs/", version)
   dir.create(outdir, showWarnings = FALSE)
 
   # Deep-copy every terra object you might mutate, before doing anything else
-  puid      <- terra::deepcopy(puid)
-  puid.num  <- terra::deepcopy(puid.num)
-  # all.pa    <- terra::deepcopy(all.pa)
-  # st.pa     <- terra::deepcopy(st.pa)
-  # n2k       <- terra::deepcopy(n2k)
+  puid <- terra::deepcopy(puid)
+  puid.num <- terra::deepcopy(puid.num)
 
   puid <- puid %>% mask(countries)
   puid.num <- puid.num %>% mask(countries)
@@ -50,7 +47,7 @@ pi.mta <- function(ll, puid, puid.num, countries, feat.info = p, rij = y, projec
   bioregion.id <- bioregion.sub2$id[!is.na(bioregion.sub2$BGR)]
   assertthat::assert_that(length(country.id) == length(bioregion.id))
 
-  if(sum(!is.na(terra::values(puid))) != length(country.id)){
+  if (sum(!is.na(terra::values(puid))) != length(country.id)) {
     message("Planning units appear to be missing regional associations in the '.sub2' data frames. Planning unit and solution rasters (ll) will be adjusted accordingly.")
     drop_cells <- setdiff(seq_len(terra::ncell(puid)), country.id)
     puid[drop_cells] <- NA
@@ -60,11 +57,11 @@ pi.mta <- function(ll, puid, puid.num, countries, feat.info = p, rij = y, projec
   p <- feat.info
   y <- rij
 
-  ee <- ll %>% terra::rast() %>% terra::extend(puid) %>% mask(countries)
+  ee <- ll %>%
+    terra::rast() %>%
+    terra::extend(puid) %>%
+    mask(countries)
   existing_pa_names <- c(basename(ll))
-  #
-  # ee <- c(ee, all.pa, st.pa, n2k)
-  # existing_pa_names <- c(existing_pa_names, "Existing all PA", "Existing strict PA", "Existing N2K")
 
   # Check whether all layers already have the same NA footprint as ee[[1]]
   # This is used to adjust baseline existing PA calculations, for consistency with the provided planning solutions
@@ -86,7 +83,6 @@ pi.mta <- function(ll, puid, puid.num, countries, feat.info = p, rij = y, projec
   }
 
   ee <- ee %>% mask(puid)
-  #ee <- ee %>% mask(ee[[1]])
 
   puid <- puid %>% terra::mask(ee[[1]])
   puid_area <- puid
@@ -95,49 +91,45 @@ pi.mta <- function(ll, puid, puid.num, countries, feat.info = p, rij = y, projec
 
   keep <- which(!is.na(terra::values(puid)))
   col_id <- which(as.numeric(colnames(y)) %in% keep)
-  y <- y[, col_id, drop=FALSE]
+  y <- y[, col_id, drop = FALSE]
 
-  # TODO: add trycatch, if this fails, reverse and mask based on y columns
-  tryCatch({
-    assertthat::assert_that(ncol(y) == sum(!is.na(terra::values(puid_area))))
-  }, error = function(e) {
-    message("First assertion failed, reconciling puid/raster layers with the rij subset: ", conditionMessage(e))
+  tryCatch(
+    {
+      assertthat::assert_that(ncol(y) == sum(!is.na(terra::values(puid_area))))
+    },
+    error = function(e) {
+      message("First assertion failed, reconciling puid/raster layers with the rij subset: ", conditionMessage(e))
 
-    keep <- as.character(colnames(y))
-    keep.cells <- which(!is.na(values(puid.num)) & as.character(terra::values(puid.num)) %in% keep)
+      keep <- as.character(colnames(y))
+      keep.cells <- which(!is.na(values(puid.num)) & as.character(terra::values(puid.num)) %in% keep)
 
-    condition <- setdiff(1:terra::ncell(puid.num), keep.cells)
+      condition <- setdiff(1:terra::ncell(puid.num), keep.cells)
 
-    puid.num[condition] <<- NA
-    puid[condition] <<- NA
-    puid_area[condition] <<- NA
-    assertthat::assert_that(sum(!is.na(terra::values(puid.num))) == sum(!is.na(terra::values(puid_area))))
-    assertthat::assert_that(ncol(y) == sum(!is.na(terra::values(puid_area))))
+      puid.num[condition] <<- NA
+      puid[condition] <<- NA
+      puid_area[condition] <<- NA
+      assertthat::assert_that(sum(!is.na(terra::values(puid.num))) == sum(!is.na(terra::values(puid_area))))
+      assertthat::assert_that(ncol(y) == sum(!is.na(terra::values(puid_area))))
 
-    for(i in 1:terra::nlyr(ee)){
-      ee[[i]][condition] <<- NA
-      assertthat::assert_that(sum(!is.na(terra::values(ee[[i]]))) == sum(!is.na(terra::values(puid_area))))
-      assertthat::assert_that(sum(!is.na(terra::values(ee[[i]]))) == sum(!is.na(terra::values(ee[[1]]))))
-      gc()
+      for (i in 1:terra::nlyr(ee)) {
+        ee[[i]][condition] <<- NA
+        assertthat::assert_that(sum(!is.na(terra::values(ee[[i]]))) == sum(!is.na(terra::values(puid_area))))
+        assertthat::assert_that(sum(!is.na(terra::values(ee[[i]]))) == sum(!is.na(terra::values(ee[[1]]))))
+        gc()
+      }
     }
-  })
+  )
 
   message(paste0("Number of planning units = ", ncol(y)))
-
-  #######################################################################################
-
-  # EXISTING PROTECTED AREAS
-
-  #######################################################################################
 
   selection <- unique(selection)
   n_passes <- if (separate) length(selection) else 1L
 
-  # One group means process the selected types together.
-  # Multiple groups means process each selected type in its own pass.
+  # One group means to process the selected types together.
+  # Multiple groups means to process each selected type in its own pass.
   groups <- if (separate) as.list(selection) else list(selection)
 
-  # Initialize output containers
+  # output containers
   co.ov.mta.out.existing <- data.frame()
   bi.ov.mta.out.existing <- data.frame()
   ta.list <- list()
@@ -145,40 +137,39 @@ pi.mta <- function(ll, puid, puid.num, countries, feat.info = p, rij = y, projec
 
   tictoc::tic()
 
-  for(h in groups){
-
+  for (h in groups) {
     h_label <- paste(h, collapse = "_")
 
     mta.out.existing <- data.frame()
     co.mta.out.existing <- data.frame()
     bi.mta.out.existing <- data.frame()
 
-    for(i in 1:terra::nlyr(ee)) {
+    for (i in 1:terra::nlyr(ee)) {
       pb$tick()
       pa.sol <- ee[[i]]
-      #pa.sol <- pa.sol %>% mask(puid)
       file.name <- existing_pa_names[[i]]
 
-      mat <- terra::values(pa.sol, mat = FALSE,na.rm=TRUE)
+      mat <- terra::values(pa.sol, mat = FALSE, na.rm = TRUE)
       mat_pu <- as.numeric(mat)
       assertthat::assert_that(length(mat_pu) == sum(!is.na(puid[])))
 
       land_area <- terra::values(puid, mat = FALSE, na.rm = TRUE)
-      # what proportion of land area is currently protected?
+
+      # what proportion of land area is protected?
       mat_prop <- pmin(mat_pu / as.numeric(land_area), 1)
       mat_prop[is.na(mat_prop)] <- 0
 
       # filter species from habitats
-      x <- p[p$feat_type %in% h,]
+      x <- p[p$feat_type %in% h, ]
 
       # Extract the subset features and targets
-      features <- data.frame(name=x$name,prop=x$target_area/x$total_range_size)
-      targets <- data.frame(name = x$name,value = x$target_area)
+      features <- data.frame(name = x$name, prop = x$target_area / x$total_range_size)
+      targets <- data.frame(name = x$name, value = x$target_area)
 
       # Remove features for which targets were set to 0
       # This ensures we aren't artificially inflating the mean target achievement
-      targets <- targets[targets$value > 0,]
-      features <- features[features$name %in% targets$name,]
+      targets <- targets[targets$value > 0, ]
+      features <- features[features$name %in% targets$name, ]
 
       # Get row indices to subset rij for feature/target alignment
       row_id <- which(rownames(y) %in% targets$name)
@@ -186,8 +177,10 @@ pi.mta <- function(ll, puid, puid.num, countries, feat.info = p, rij = y, projec
       rij2 <- y[row_id, , drop = FALSE]
 
       # Dimensions check
-      assertthat::assert_that(all(features$name %in% targets$name),
-                              nrow(features) == nrow(rij2))
+      assertthat::assert_that(
+        all(features$name %in% targets$name),
+        nrow(features) == nrow(rij2)
+      )
 
       # Calculate the overall mean target achievement per feature #
 
@@ -200,203 +193,203 @@ pi.mta <- function(ll, puid, puid.num, countries, feat.info = p, rij = y, projec
 
       # Calculate target achievements
       # sum of the amount selected for each feature
-      ta <- data.frame(feature = names(Matrix::rowSums(rij_sel)),
-                       pi = as.numeric(Matrix::rowSums(rij_sel)))
+      ta <- data.frame(
+        feature = names(Matrix::rowSums(rij_sel)),
+        pi = as.numeric(Matrix::rowSums(rij_sel))
+      )
 
+      # recalculate targets in relation to aligned puid, ll, and rij files
       corrected.targets <- data.frame(name = features$name, value = Matrix::rowSums(rij2) * features$prop)
       drop.features <- corrected.targets$name[corrected.targets$value == 0]
       row.id.drop <- which(!rownames(rij_sel) %in% drop.features)
       rij_sel <- rij_sel[row.id.drop, , drop = FALSE]
       rij2 <- rij2[row.id.drop, , drop = FALSE]
-      features<-features[!features$name %in% drop.features,]
+      features <- features[!features$name %in% drop.features, ]
 
       # Join in ti
-      ta <- ta |> dplyr::left_join(corrected.targets |> dplyr::select(name, value) |>
-                                     dplyr::rename(ti = value),
-                                   by = c("feature" = "name") )
+      ta <- ta |> dplyr::left_join(
+        corrected.targets |> dplyr::select(name, value) |>
+          dplyr::rename(ti = value),
+        by = c("feature" = "name")
+      )
 
       # mean( min( Conserved amount  for species / Target for species, 1) )
       # pi = total amount of each feature selected in the solution
       # ti = initial (absolute) target
-      ta <- ta[ta$ti > 0,]
-      ta$ratio <- ta$pi/ta$ti # could exceed 100%
+      ta <- ta[ta$ti > 0, ]
+      ta$ratio <- ta$pi / ta$ti # could exceed 100%
       ta$final <- pmin(ta$ratio, 1) # capped at 100%
-      mta <- mean(ta$final, na.rm=TRUE)
+      mta <- mean(ta$final, na.rm = TRUE)
 
       ta.list[[paste(file.name, h_label, sep = "__")]] <- ta
 
-      m <- data.frame(project = paste0(project.name,"__",version),
-                      scenario = file.name,
-                      region = "Europe",
-                      variable = paste0("Mean target achievement (", h_label, ")"),
-                      variable_variant = "Overall",
-                      unit = "%",
-                      value = mta)
+      m <- data.frame(
+        project = paste0(project.name, "__", version),
+        scenario = file.name,
+        region = "Europe",
+        variable = paste0("Mean target achievement (", h_label, ")"),
+        variable_variant = "Overall",
+        unit = "%",
+        value = mta
+      )
 
       mta.out.existing <- rbind(mta.out.existing, m)
 
       gc()
 
-      if(regional.metrics == TRUE){
+      if (regional.metrics == TRUE) {
+        # Countries
+        for (j in 1:nrow(countries.sub)) {
+          co.pu <- countries.sub2 %>% dplyr::filter(names == countries.sub$names[j])
 
-      # Countries
-      for (j in 1:nrow(countries.sub)) {
-        co.pu <- countries.sub2 %>% dplyr::filter(names == countries.sub$names[j])
-
-        if(nrow(co.pu) == 0){
-          co.mta <- NA
-        } else {
-          # subset to retain selected PUs within a given region, and retain available
-          # area of each feature per region
-          co.rij.sel = rij_sel[, colnames(rij_sel) %in% co.pu$id, drop=FALSE]
-          co.rij.all = rij2[, colnames(rij2) %in% co.pu$id, drop=FALSE]
-
-          # amount selected per feature per region
-          co.sel = rowSums(co.rij.sel)
-          # total available per feature per region
-          co.available = rowSums(co.rij.all)
-
-          # regional target adjustment
-          co.target = data.frame(co.target = co.available * features$prop)  # same prop as for overall MTA calculation
-          co.ta = as.data.frame(cbind(co.sel,co.available,co.target))
-          co.ta = co.ta[rownames(co.ta) %in% ta$feature,]
-          assertthat::assert_that(all(nrow(co.ta) == nrow(ta)))
-          assertthat::assert_that(all(rownames(co.ta) %in% ta$feature))
-
-          # regional contribution to overall target achievement
-          co.ov.ta = as.data.frame(cbind(co.ta, ov.target = ta$ti))
-
-          # remove features not found in the given region
-          co.ta = co.ta[co.ta$co.target > 0,]
-          assertthat::assert_that(all(co.ta$co.available > 0))
-
-          # country-level MTA
-          co.ta.ratio = co.ta$co.sel / co.ta$co.target
-          co.ta.final = pmin(co.ta.ratio, 1)
-          co.mta = mean(co.ta.final, na.rm = TRUE)
-
-          n <- data.frame(project = paste0(project.name,"__",version),
-                          scenario =  file.name,
-                          region = paste0(as.character(countries.sub[[j,"names"]])),
-                          variable = paste0("Mean target achievement (", h_label, ")"),
-                          variable_variant = "Region burden share",
-                          unit = "%",
-                          value = co.mta)
-
-          co.mta.out.existing <- rbind(co.mta.out.existing, n)
-
-          # contribution of each country to meeting the overall target of each feature
-          co.ov.out <- data.frame(co.ov.ta$co.sel / co.ov.ta$ov.target)
-          co.ov.ta.ratio = data.frame(rownames(co.ov.ta), co.ov.out)
-          colnames(co.ov.ta.ratio) <- c("features", paste0(countries.sub$names[j]))
-
-          if (ncol(co.ov.mta.out.existing) == 0) {
-            # initialize with first result
-            co.ov.mta.out.existing <- co.ov.ta.ratio
+          if (nrow(co.pu) == 0) {
+            co.mta <- NA
           } else {
-            # check row compatibility before cbind
-            if (nrow(co.ov.mta.out.existing) == nrow(co.ov.ta.ratio)) {
-              co.ov.mta.out.existing <- cbind(co.ov.mta.out.existing, co.ov.ta.ratio[2])
+            # subset to retain selected PUs within a given region, and retain available
+            # area of each feature per region
+            co.rij.sel <- rij_sel[, colnames(rij_sel) %in% co.pu$id, drop = FALSE]
+            co.rij.all <- rij2[, colnames(rij2) %in% co.pu$id, drop = FALSE]
+
+            # amount selected per feature per region
+            co.sel <- rowSums(co.rij.sel)
+            # total available per feature per region
+            co.available <- rowSums(co.rij.all)
+
+            # regional target adjustment
+            co.target <- data.frame(co.target = co.available * features$prop) # same prop as for overall MTA calculation
+            co.ta <- as.data.frame(cbind(co.sel, co.available, co.target))
+            co.ta <- co.ta[rownames(co.ta) %in% ta$feature, ]
+            assertthat::assert_that(all(nrow(co.ta) == nrow(ta)))
+            assertthat::assert_that(all(rownames(co.ta) %in% ta$feature))
+
+            # regional contribution to overall target achievement
+            co.ov.ta <- as.data.frame(cbind(co.ta, ov.target = ta$ti))
+
+            # remove features not found in the given region
+            co.ta <- co.ta[co.ta$co.target > 0, ]
+            assertthat::assert_that(all(co.ta$co.available > 0))
+
+            # country-level MTA
+            co.ta.ratio <- co.ta$co.sel / co.ta$co.target
+            co.ta.final <- pmin(co.ta.ratio, 1)
+            co.mta <- mean(co.ta.final, na.rm = TRUE)
+
+            n <- data.frame(
+              project = paste0(project.name, "__", version),
+              scenario = file.name,
+              region = paste0(as.character(countries.sub[[j, "names"]])),
+              variable = paste0("Mean target achievement (", h_label, ")"),
+              variable_variant = "Region burden share",
+              unit = "%",
+              value = co.mta
+            )
+
+            co.mta.out.existing <- rbind(co.mta.out.existing, n)
+
+            # contribution of each country to meeting the overall target of each feature
+            co.ov.out <- data.frame(co.ov.ta$co.sel / co.ov.ta$ov.target)
+            co.ov.ta.ratio <- data.frame(rownames(co.ov.ta), co.ov.out)
+            colnames(co.ov.ta.ratio) <- c("features", paste0(countries.sub$names[j]))
+
+            if (ncol(co.ov.mta.out.existing) == 0) {
+              # initialize with first result
+              co.ov.mta.out.existing <- co.ov.ta.ratio
             } else {
-              stop("Row mismatch: cannot cbind different lengths")
+              # check row compatibility before cbind
+              if (nrow(co.ov.mta.out.existing) == nrow(co.ov.ta.ratio)) {
+                co.ov.mta.out.existing <- cbind(co.ov.mta.out.existing, co.ov.ta.ratio[2])
+              } else {
+                stop("Row mismatch: cannot cbind different lengths")
+              }
             }
           }
         }
-      }
 
-      # assert that overall MTA can accurately be back-calculated from these regional contributions
-      xx = data.frame(sum = rowSums(co.ov.mta.out.existing[,2:ncol(co.ov.mta.out.existing)]))
-      xx2 <- data.frame(sum = pmin(as.numeric(xx[[1]]), 1, na.rm = FALSE))
-      assertthat::assert_that(abs(mta - mean(xx2$sum)) < 1e-6)
+        # assert that overall MTA can accurately be back-calculated from these regional contributions
+        xx <- data.frame(sum = rowSums(co.ov.mta.out.existing[, 2:ncol(co.ov.mta.out.existing)]))
+        xx2 <- data.frame(sum = pmin(as.numeric(xx[[1]]), 1, na.rm = FALSE))
+        assertthat::assert_that(abs(mta - mean(xx2$sum)) < 1e-6)
 
-      outdir.mta <- paste0(outdir, "/MTA/")
-      dir.create(outdir.mta, showWarnings = FALSE)
+        outdir.mta <- paste0(outdir, "/MTA/")
+        dir.create(outdir.mta, showWarnings = FALSE)
 
-      #if(consensus.sol == 1){
-      #  ofname <- paste0(outdir.consensus, "/", "MTA/", project.name,"__", version, "__",paste0(file.name, "__indicator_MTA_",h,"_Country_Contribution_Percentages.csv"))
-      #} else if (consensus.sol == 0){
-        ofname <- paste0(outdir.mta, project.name,"__", version, "__",paste0(file.name, "__indicator_MTA_",h_label,"_Country_Contribution_Percentages.csv"))
-      #}
+        ofname <- paste0(outdir.mta, project.name, "__", version, "__", paste0(file.name, "__indicator_MTA_", h_label, "_Country_Contribution_Percentages.csv"))
+        utils::write.csv(co.ov.mta.out.existing, ofname, row.names = FALSE)
+        co.ov.mta.out.existing <- data.frame()
 
-      utils::write.csv(co.ov.mta.out.existing, ofname, row.names = FALSE)
-      co.ov.mta.out.existing <- data.frame()
+        gc()
 
-      gc()
+        # Bioregions
+        for (k in 1:nrow(bioregion.sub)) {
+          bi.pu <- bioregion.sub2 %>% dplyr::filter(names == bioregion.sub$names[k])
 
-      # Bioregions
-      for (k in 1:nrow(bioregion.sub)) {
-        bi.pu <- bioregion.sub2 %>% dplyr::filter(names == bioregion.sub$names[k])
-
-        if(nrow(bi.pu) == 0){
-          bi.mta <- NA
-        } else {
-          # subset to retain selected PUs within a given region
-          bi.rij.sel = rij_sel[, colnames(rij_sel) %in% bi.pu$id, drop=FALSE]
-          bi.rij.all = rij2[, colnames(rij2) %in% bi.pu$id, drop=FALSE]
-
-          # amount selected per feature per region
-          bi.sel = rowSums(bi.rij.sel)
-          # total available per feature per region
-          bi.available = rowSums(bi.rij.all)
-
-          # maximum potential contribution of region toward feature target
-          bi.target = data.frame(bi.target = bi.available * features$prop)  # same prop as for overall MTA calculations
-          bi.ta = as.data.frame(cbind(bi.sel,bi.available,bi.target))
-          bi.ta = bi.ta[rownames(bi.ta) %in% ta$feature,]
-          assertthat::assert_that(all(nrow(bi.ta) == nrow(ta)))
-          assertthat::assert_that(all(rownames(bi.ta) %in% ta$feature))
-
-          bi.ov.ta = as.data.frame(cbind(bi.ta, ov.target = ta$ti))
-
-          bi.ta = bi.ta[bi.ta$bi.target > 0,]
-          assertthat::assert_that(all(bi.ta$bi.available > 0))
-
-          # fraction of region contribution achieved
-          bi.ta.ratio = bi.ta$bi.sel / bi.ta$bi.target
-          bi.ta.final = pmin(bi.ta.ratio, 1)
-          bi.mta = mean(bi.ta.final, na.rm = TRUE)
-
-          o <- data.frame(project = paste0(project.name,"__",version),
-                          scenario = file.name,# " (", filtered[z],")"),
-                          region = paste0(as.character(bioregion.sub[[k,"names"]])),
-                          variable = paste0("Mean target achievement (", h_label, ")"),
-                          variable_variant = "Region burden share",
-                          unit = "%",
-                          value = bi.mta)
-
-          bi.mta.out.existing <- rbind(bi.mta.out.existing, o)
-
-          # contribution of each country to meeting the overall target of each feature
-          bi.ov.out <- data.frame(bi.ov.ta$bi.sel / bi.ov.ta$ov.target)
-          bi.ov.ta.ratio = data.frame(rownames(bi.ov.ta), bi.ov.out)
-          colnames(bi.ov.ta.ratio) <- c("features", paste0(bioregion.sub$names[k]))
-
-          if (ncol(bi.ov.mta.out.existing) == 0) {
-            # initialize with first result
-            bi.ov.mta.out.existing <- bi.ov.ta.ratio
+          if (nrow(bi.pu) == 0) {
+            bi.mta <- NA
           } else {
-            # check row compatibility before cbind
-            if (nrow(bi.ov.mta.out.existing) == nrow(bi.ov.ta.ratio)) {
-              bi.ov.mta.out.existing <- cbind(bi.ov.mta.out.existing, bi.ov.ta.ratio[2])
+            # subset to retain selected PUs within a given region
+            bi.rij.sel <- rij_sel[, colnames(rij_sel) %in% bi.pu$id, drop = FALSE]
+            bi.rij.all <- rij2[, colnames(rij2) %in% bi.pu$id, drop = FALSE]
+
+            # amount selected per feature per region
+            bi.sel <- rowSums(bi.rij.sel)
+            # total available per feature per region
+            bi.available <- rowSums(bi.rij.all)
+
+            # maximum potential contribution of region toward feature target
+            bi.target <- data.frame(bi.target = bi.available * features$prop) # same prop as for overall MTA calculations
+            bi.ta <- as.data.frame(cbind(bi.sel, bi.available, bi.target))
+            bi.ta <- bi.ta[rownames(bi.ta) %in% ta$feature, ]
+            assertthat::assert_that(all(nrow(bi.ta) == nrow(ta)))
+            assertthat::assert_that(all(rownames(bi.ta) %in% ta$feature))
+
+            bi.ov.ta <- as.data.frame(cbind(bi.ta, ov.target = ta$ti))
+
+            bi.ta <- bi.ta[bi.ta$bi.target > 0, ]
+            assertthat::assert_that(all(bi.ta$bi.available > 0))
+
+            # fraction of region contribution achieved
+            bi.ta.ratio <- bi.ta$bi.sel / bi.ta$bi.target
+            bi.ta.final <- pmin(bi.ta.ratio, 1)
+            bi.mta <- mean(bi.ta.final, na.rm = TRUE)
+
+            o <- data.frame(
+              project = paste0(project.name, "__", version),
+              scenario = file.name, # " (", filtered[z],")"),
+              region = paste0(as.character(bioregion.sub[[k, "names"]])),
+              variable = paste0("Mean target achievement (", h_label, ")"),
+              variable_variant = "Region burden share",
+              unit = "%",
+              value = bi.mta
+            )
+
+            bi.mta.out.existing <- rbind(bi.mta.out.existing, o)
+
+            # contribution of each country to meeting the overall target of each feature
+            bi.ov.out <- data.frame(bi.ov.ta$bi.sel / bi.ov.ta$ov.target)
+            bi.ov.ta.ratio <- data.frame(rownames(bi.ov.ta), bi.ov.out)
+            colnames(bi.ov.ta.ratio) <- c("features", paste0(bioregion.sub$names[k]))
+
+            if (ncol(bi.ov.mta.out.existing) == 0) {
+              # initialize with first result
+              bi.ov.mta.out.existing <- bi.ov.ta.ratio
             } else {
-              stop("Row mismatch: cannot cbind different lengths")
+              # check row compatibility before cbind
+              if (nrow(bi.ov.mta.out.existing) == nrow(bi.ov.ta.ratio)) {
+                bi.ov.mta.out.existing <- cbind(bi.ov.mta.out.existing, bi.ov.ta.ratio[2])
+              } else {
+                stop("Row mismatch: cannot cbind different lengths")
+              }
             }
           }
         }
-      }
-      # assert that overall MTA can accurately be back-calculated from these regional contributions
-      yy = data.frame(sum = rowSums(bi.ov.mta.out.existing[,2:ncol(bi.ov.mta.out.existing)]))
-      yy2 <- data.frame(sum = pmin(as.numeric(yy[[1]]), 1, na.rm = FALSE))
-      assertthat::assert_that(abs(mta - mean(yy2$sum)) < 1e-6)
+        # assert that overall MTA can accurately be back-calculated from these regional contributions
+        yy <- data.frame(sum = rowSums(bi.ov.mta.out.existing[, 2:ncol(bi.ov.mta.out.existing)]))
+        yy2 <- data.frame(sum = pmin(as.numeric(yy[[1]]), 1, na.rm = FALSE))
+        assertthat::assert_that(abs(mta - mean(yy2$sum)) < 1e-6)
 
-      #if(consensus.sol == 1){
-      #  ofname <- paste0(outdir.consensus, "/", "MTA/", project.name,"__", version, "__", paste0(file.name, "__indicator_MTA_",h,"_Bioregion_Contribution_Percentages.csv"))
-      #} else if (consensus.sol == 0){
-        ofname <- paste0(outdir.mta, project.name,"__", version, "__", paste0(file.name, "__indicator_MTA_",h_label,"_Bioregion_Contribution_Percentages.csv"))
-      #}
-
-      utils::write.csv(bi.ov.mta.out.existing, ofname, row.names = FALSE)
-      bi.ov.mta.out.existing <- data.frame()
+        ofname <- paste0(outdir.mta, project.name, "__", version, "__", paste0(file.name, "__indicator_MTA_", h_label, "_Bioregion_Contribution_Percentages.csv"))
+        utils::write.csv(bi.ov.mta.out.existing, ofname, row.names = FALSE)
+        bi.ov.mta.out.existing <- data.frame()
 
         gc()
       }
@@ -406,16 +399,14 @@ pi.mta <- function(ll, puid, puid.num, countries, feat.info = p, rij = y, projec
     out.mta.final <- rbind(mta.out.existing, co.mta.out.existing, bi.mta.out.existing)
     out.mta.final$value <- out.mta.final$value * 100
 
-    ofname <- paste0(outdir, "/", project.name,"__",version, "__indicator_", h_label,"_meantargetachievement.csv")
+    ofname <- paste0(outdir, "/", project.name, "__", version, "__indicator_", h_label, "_meantargetachievement.csv")
     utils::write.csv(out.mta.final, ofname, row.names = FALSE)
-
   }
   tictoc::toc()
 
-  if(intermediate == TRUE){
+  if (intermediate == TRUE) {
     return(ta.list)
   }
 
   message("Mean target achievement calculation done")
-
 }

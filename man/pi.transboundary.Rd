@@ -9,7 +9,7 @@ pi.transboundary(ll, puid, countries, tb.buffers, project.name, version)
 \arguments{
 \item{ll}{A character vector containing file paths of raster files (e.g., spatial prioritization outputs) in '.tif' format.}
 
-\item{puid}{A SpatRaster layer with planning units}
+\item{puid}{A SpatRaster layer, reflecting the amount of land area per planning unit}
 
 \item{countries}{An sf vector layer containing individual countries}
 
@@ -27,8 +27,10 @@ Transboundary Protection
 }
 \examples{
 \dontrun{
-pi.transboundary(ll = "C:/.../solution_file.tif", puid, countries,
-                  tb.buffers, project.name = "Example Project",
-                  version = "Version 1")
+pi.transboundary(
+  ll = "C:/.../solution_file.tif", puid, countries,
+  tb.buffers, project.name = "Example Project",
+  version = "Version 1"
+)
 }
 }

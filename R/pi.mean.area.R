@@ -1,9 +1,9 @@
 #' Mean Network Area
 #'
 #' @param ll A character vector containing file paths of raster files (e.g., spatial prioritization outputs) in '.tif' format.
-#' @param puid A SpatRaster layer with planning units
-#' @param countries An sf vector layer containing individual countries
-#' @param bioregion An sf vector layer containing individual biogeographic regions
+#' @param puid A SpatRaster layer, reflecting the amount of land area per planning unit
+#' @param countries An sf vector layer containing individual countries, with names specified in a column named "code"
+#' @param bioregion An sf vector layer containing individual biogeographic regions, with names specified in a column named "code"
 #' @param project.name A character vector specifying the name of your project
 #' @param version A character vector specifying the version (e.g., date) of your workflow
 #'
@@ -64,36 +64,20 @@
 #'
 #' @examples
 #' \dontrun{
-#' pi.mean.area(ll = "C:/.../solution_file.tif", puid,
-#'               countries, bioregion, project.name = "Example Project", version = "Version 1")
-#'}
-
-pi.mean.area <- function(ll, puid, countries, bioregion, project.name, version){
-
-  # # Transform to ensure alignment of CRS
-  # if(terra::crs(puid) != terra::crs(all.pa)){
-  #   all.pa <- all.pa |> terra::project(puid)
-  # }
-  # assertthat::assert_that(crs(all.pa) == crs(puid))
-  #
-  # if(terra::crs(puid) != terra::crs(st.pa)){
-  #   st.pa <- st.pa |> terra::project(puid)
-  # }
-  # assertthat::assert_that(crs(st.pa) == crs(puid))
-  #
-  # if(terra::crs(puid) != terra::crs(n2k)){
-  #   n2k <- n2k |> terra::project(puid)
-  # }
-  # assertthat::assert_that(crs(n2k) == crs(puid))
-
+#' pi.mean.area(
+#'   ll = "C:/.../solution_file.tif", puid,
+#'   countries, bioregion, project.name = "Example Project", version = "Version 1"
+#' )
+#' }
+pi.mean.area <- function(ll, puid, countries, bioregion, project.name, version) {
   puid <- puid %>% mask(countries)
   puid_area <- puid
 
-  ee <- ll %>% rast() %>% extend(puid) %>% mask(countries)
+  ee <- ll %>%
+    rast() %>%
+    extend(puid) %>%
+    mask(countries)
   existing_pa_names <- c(basename(ll))
-
-  #ee <- c(ee, all.pa, st.pa, n2k)
-  #existing_pa_names <- c(existing_pa_names, "Existing all PA", "Existing strict PA", "Existing N2K")
 
   puid <- puid %>% mask(ee[[1]])
   puid_area <- puid_area %>% mask(ee[[1]])
@@ -117,66 +101,59 @@ pi.mean.area <- function(ll, puid, countries, bioregion, project.name, version){
     ee <- ee %>% mask(ee[[1]])
   }
 
-  #ee <- ee %>% mask(puid)
+  # ee <- ee %>% mask(puid)
+
+  # union countries to represent continental extent
   co.dissolve <- sf::st_union(countries)
 
   message(paste0("Number of planning units in solution files = ", sum(!is.na(values(ee[[1]])))))
   message(paste0("Number of planning units in puid file = ", sum(!is.na(values(puid)))))
 
-  #######################################################################################
-
-  # EXISTING PROTECTED AREAS
-
-  #######################################################################################
-
-  # bioregions and countries
+  # output containers
   area.europe.existing <- data.frame()
   area.bioregion.existing <- data.frame()
   area.countries.existing <- data.frame()
   pb <- progress::progress_bar$new(total = nlyr(ee))
 
   tic()
+  # loop through the solution rasters
   for (i in 1:nlyr(ee)) {
     pb$tick()
-    # loop through the solution rasters
     pa.sol <- ee[[i]]
     file.name <- existing_pa_names[[i]]
 
-    # calculate the selected area; for existing pa, do not multiply by land area
-    # this step is only needed for proportional solutions
+    # calculate the selected area; for existing pa
     pa.sol.area <- pa.sol
 
     # Overall sum
-    ov.eur.area <- exactextractr::exact_extract(puid_area, co.dissolve, fun="sum")
-    ov.sol.area <- exactextractr::exact_extract(pa.sol.area, co.dissolve, fun="sum")
-
-    #ov.eur.area <- global(puid_area,"sum",na.rm=TRUE)[[1]]
-    #ov.sol.area <- global(pa.sol.area,"sum",na.rm=TRUE)[[1]]
+    ov.eur.area <- exactextractr::exact_extract(puid_area, co.dissolve, fun = "sum")
+    ov.sol.area <- exactextractr::exact_extract(pa.sol.area, co.dissolve, fun = "sum")
 
     # normalization
     # normalize by the total area of each region
     area.out.norm <- (ov.sol.area / as.numeric(ov.eur.area))
 
-    o <- data.frame(project = paste0(project.name,"__",version),
-                    scenario = file.name,
-                    region = "Europe",
-                    variable = "Relative amount of area covered",
-                    variable_variant = "Total area of region",
-                    unit = "%",
-                    value = area.out.norm)
+    o <- data.frame(
+      project = paste0(project.name, "__", version),
+      scenario = file.name,
+      region = "Europe",
+      variable = "Relative amount of area covered",
+      variable_variant = "Total area of region",
+      unit = "%",
+      value = area.out.norm
+    )
 
     area.europe.existing <- rbind(area.europe.existing, o)
 
     for (j in 1:nrow(bioregion)) {
       # loop through the bioregions
-      # TODO: See if we need to be clipping and masking region 1 to puid_area
-      region1 <- bioregion[j,] %>% sf::st_make_valid()
+      region1 <- bioregion[j, ] %>% sf::st_make_valid()
 
       # denominators for normalization
       # calculate the total area of each region, in km2
-      region1.area <- exactextractr::exact_extract(puid_area, region1, fun="sum")
+      region1.area <- exactextractr::exact_extract(puid_area, region1, fun = "sum")
       # calculate the selected area within each region
-      area.sel <- exactextractr::exact_extract(pa.sol.area, region1, fun="sum")
+      area.sel <- exactextractr::exact_extract(pa.sol.area, region1, fun = "sum")
 
       # normalization
       # normalize by the total area of each region
@@ -184,32 +161,34 @@ pi.mean.area <- function(ll, puid, countries, bioregion, project.name, version){
       # normalize by the selected area within each region
       area.out.norm2 <- (area.sel / as.numeric(ov.eur.area))
 
-      o <- data.frame(project = paste0(project.name,"__",version),
-                      scenario = file.name,
-                      region = paste0(as.character(bioregion[[j,"code"]])),
-                      variable = "Relative amount of area covered",
-                      variable_variant = "Total area of region",
-                      unit = "%",
-                      value = area.out.norm)
+      o <- data.frame(
+        project = paste0(project.name, "__", version),
+        scenario = file.name,
+        region = paste0(as.character(bioregion[[j, "code"]])),
+        variable = "Relative amount of area covered",
+        variable_variant = "Total area of region",
+        unit = "%",
+        value = area.out.norm
+      )
 
       o2 <- o %>% mutate(
         variable_variant = "Total area of Europe",
         unit = "%",
-        value = area.out.norm2)
+        value = area.out.norm2
+      )
 
       area.bioregion.existing <- rbind(area.bioregion.existing, o, o2)
     }
 
     for (j in 1:nrow(countries)) {
       # loop through the countries
-      # TODO: See if we need to be clipping and masking region 1 to puid_area
-      region1 <- countries[j,] %>% sf::st_make_valid()
+      region1 <- countries[j, ] %>% sf::st_make_valid()
 
       # denominators for normalization
       # calculate the total area of each region, in km2
-      region1.area <- exactextractr::exact_extract(puid_area, region1, fun="sum")
+      region1.area <- exactextractr::exact_extract(puid_area, region1, fun = "sum")
       # calculate the selected area within each region
-      area.sel <- exactextractr::exact_extract(pa.sol.area, region1, fun="sum")
+      area.sel <- exactextractr::exact_extract(pa.sol.area, region1, fun = "sum")
 
       # normalization
       # normalize by the total area of each region
@@ -217,25 +196,28 @@ pi.mean.area <- function(ll, puid, countries, bioregion, project.name, version){
       # normalize by the selected area within each region
       area.out.norm2 <- (area.sel / as.numeric(ov.eur.area))
 
-      o <- data.frame(project = paste0(project.name,"__",version),
-                      scenario = file.name,
-                      region = paste0(as.character(countries[[j,"NAME_0"]])),
-                      variable = "Relative amount of area covered",
-                      variable_variant = "Total area of region",
-                      unit = "%",
-                      value = area.out.norm)
+      o <- data.frame(
+        project = paste0(project.name, "__", version),
+        scenario = file.name,
+        region = paste0(as.character(countries[[j, "code"]])),
+        variable = "Relative amount of area covered",
+        variable_variant = "Total area of region",
+        unit = "%",
+        value = area.out.norm
+      )
 
       o2 <- o %>% mutate(
         variable_variant = "Total area of Europe",
         unit = "%",
-        value = area.out.norm2)
+        value = area.out.norm2
+      )
 
       area.countries.existing <- rbind(area.countries.existing, o, o2)
     }
   }
   toc()
 
-  # Bind results for bioregions and countries, then export to output directory
+  # Bind results for europe, bioregions and countries, then export
   out.area.final <- rbind(area.europe.existing, area.bioregion.existing, area.countries.existing)
   # Convert from proportions to percentages
   out.area.final$value <- out.area.final$value * 100
@@ -243,12 +225,8 @@ pi.mean.area <- function(ll, puid, countries, bioregion, project.name, version){
   outdir <- paste0("performance_outputs/", version)
   dir.create(outdir, showWarnings = FALSE)
 
-  #if(consensus.sol == 1){
-  #  ofname <- paste0(outdir.consensus, "/", project.name,"__",version, "__indicator_relativeareacoverage.csv")
-  #} else if (consensus.sol == 0){
-    ofname <- paste0(outdir, "/", project.name,"__",version, "__indicator_relativeareacoverage.csv")
-  #}
-
+  ofname <- paste0(outdir, "/", project.name, "__", version, "__indicator_relativeareacoverage.csv")
   write.csv(out.area.final, ofname, row.names = FALSE)
+
   message("Area calculation done. Don't forget to create/update variable definitions")
 }

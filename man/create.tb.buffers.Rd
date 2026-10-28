@@ -34,7 +34,9 @@ Transboundary buffer file creation
 }
 \examples{
 \dontrun{
-tb.buffers <- create.tb.buffers(regions, buffer.width = 10000, progress = TRUE,
-                                 plot = TRUE, save = FALSE, outdir = NULL)
+tb.buffers <- create.tb.buffers(regions,
+  buffer.width = 10000, progress = TRUE,
+  plot = TRUE, save = FALSE, outdir = NULL
+)
 }
 }

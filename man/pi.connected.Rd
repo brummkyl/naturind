@@ -13,6 +13,7 @@ pi.connected(
   target.res = 5000,
   bin.threshold = 0.5,
   euc.threshold = 10000,
+  n.cores = 2,
   project.name,
   version
 )
@@ -20,11 +21,11 @@ pi.connected(
 \arguments{
 \item{ll}{A character vector containing file paths of raster files (e.g., spatial prioritization outputs) in '.tif' format.}
 
-\item{puid}{A SpatRaster layer with planning units}
+\item{puid}{A SpatRaster layer, reflecting the amount of land area per planning unit}
 
-\item{countries}{An sf vector layer containing individual countries}
+\item{countries}{An sf vector layer containing individual countries, with names specified in a column named "code"}
 
-\item{bioregion}{An sf vector layer containing individual biogeographic regions}
+\item{bioregion}{An sf vector layer containing individual biogeographic regions, with names specified in a column named "code"}
 
 \item{conn.layer}{A connectivity layer, which will internally be converted to a resistance raster.}
 
@@ -33,6 +34,8 @@ pi.connected(
 \item{bin.threshold}{A double numeric, ranging between 0 and 1, defining the threshold for binarizing a proportional protected area raster}
 
 \item{euc.threshold}{An integer specifying the dispersal distance (in meters) used to calculate connectivity metrics.}
+
+\item{n.cores}{Number of cores to use in parallel processing. The actual number of cores used will be taken as the minimum of 'n.cores' and length(ll)}
 
 \item{project.name}{A character vector specifying the name of your project}
 
@@ -46,8 +49,10 @@ Absolute (ProtCon) and Relative (RelConn) Protected and Connected Land Area
 }
 \examples{
 \dontrun{
-pi.connected(ll, puid, countries, bioregion, conn.layer, target.res = 5000,
-              bin.threshold = 0.5, euc.threshold = 10000,
-              project.name = "Example Project", version = "Version 1")
+pi.connected(ll, puid, countries, bioregion, conn.layer,
+  target.res = 5000,
+  bin.threshold = 0.5, euc.threshold = 10000, n.cores = 2,
+  project.name = "Example Project", version = "Version 1"
+)
 }
 }

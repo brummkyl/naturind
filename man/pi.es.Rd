@@ -11,6 +11,7 @@ pi.es(
   bioregion,
   pollination = rs3,
   capdem = sp.reg.es,
+  n.cores = 2,
   project.name,
   version
 )
@@ -18,15 +19,17 @@ pi.es(
 \arguments{
 \item{ll}{A character vector containing file paths of raster files (e.g., spatial prioritization outputs) in '.tif' format.}
 
-\item{puid}{A SpatRaster layer with planning units}
+\item{puid}{A SpatRaster layer, reflecting the amount of land area per planning unit}
 
-\item{countries}{An sf vector layer containing individual countries}
+\item{countries}{An sf vector layer containing individual countries, with names specified in a column named "code"}
 
-\item{bioregion}{An sf vector layer containing individual biogeographic regions}
+\item{bioregion}{An sf vector layer containing individual biogeographic regions, with names specified in a column named "code"}
 
 \item{pollination}{A SpatRaster layer quantifying pollination supply, or any other layer of interest, in units of square meters}
 
 \item{capdem}{A SpatRaster layer quantifying species-based ES supply, or any other layer of interest, in units of square kilometers (or otherwise dimensionless)}
+
+\item{n.cores}{Number of cores to use in parallel processing. The actual number of cores used will be taken as the minimum of 'n.cores' and length(ll)}
 
 \item{project.name}{A character vector specifying the name of your project}
 
@@ -40,8 +43,10 @@ Ecosystem Services
 }
 \examples{
 \dontrun{
-pi.es(ll = "C:/.../solution_file.tif", puid, countries,
-       bioregion, pollination, capdem, project.name = "Example Project",
-       version = "Version 1")
+pi.es(
+  ll = "C:/.../solution_file.tif", puid, countries,
+  bioregion, pollination, capdem, n.cores = 2, project.name = "Example Project",
+  version = "Version 1"
+)
 }
 }

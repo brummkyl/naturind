@@ -18,11 +18,11 @@ pi.irreplaceability(
 \arguments{
 \item{ll}{A character vector containing file paths of raster files (e.g., spatial prioritization outputs) in '.tif' format.}
 
-\item{puid}{A SpatRaster layer with planning units}
+\item{puid}{A SpatRaster layer, reflecting the amount of land area per planning unit}
 
-\item{countries}{An sf vector layer containing individual countries}
+\item{countries}{An sf vector layer containing individual countries, with names specified in a column named "code"}
 
-\item{bioregion}{An sf vector layer containing individual biogeographic regions}
+\item{bioregion}{An sf vector layer containing individual biogeographic regions, with names specified in a column named "code"}
 
 \item{gamma.irr}{A SpatRaster layer containing gamma irreplaceability scores for planning units}
 
@@ -40,8 +40,10 @@ Irreplaceability
 }
 \examples{
 \dontrun{
-pi.irreplaceability(ll = "C:/.../solution_file.tif", puid, countries,
-                     bioregion, beta.irr, irr.quantile = 0.9, project.name = "Example Project",
-                     version = "Version 1")
+pi.irreplaceability(
+  ll = "C:/.../solution_file.tif", puid, countries,
+  bioregion, beta.irr, irr.quantile = 0.9, project.name = "Example Project",
+  version = "Version 1"
+)
 }
 }

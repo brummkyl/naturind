@@ -18,11 +18,11 @@ pi.oppcosts(
 \arguments{
 \item{ll}{A character vector containing file paths of raster files (e.g., expansion priorities) in '.tif' format.}
 
-\item{puid}{A SpatRaster layer with planning units}
+\item{puid}{A SpatRaster layer, reflecting the amount of land area per planning unit}
 
-\item{countries}{An sf vector layer containing individual countries}
+\item{countries}{An sf vector layer containing individual countries, with names specified in a column named "code"}
 
-\item{bioregion}{An sf vector layer containing individual biogeographic regions}
+\item{bioregion}{An sf vector layer containing individual biogeographic regions, with names specified in a column named "code"}
 
 \item{for.opp}{A SpatRaster layer with opportunity costs for forestry}
 
@@ -40,7 +40,9 @@ Opportunity Costs
 }
 \examples{
 \dontrun{
-pi.oppcosts(ll = "C:/.../solution_file.tif", puid, countries, bioregion,
-             project.name = "Example Project", version = "Version 1")
+pi.oppcosts(
+  ll = "C:/.../solution_file.tif", puid, countries, bioregion,
+  project.name = "Example Project", version = "Version 1"
+)
 }
 }

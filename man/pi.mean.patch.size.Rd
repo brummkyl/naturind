@@ -17,11 +17,11 @@ pi.mean.patch.size(
 \arguments{
 \item{ll}{A character vector containing file paths of raster files (e.g., spatial prioritization outputs) in '.tif' format.}
 
-\item{puid}{A SpatRaster layer with planning units}
+\item{puid}{A SpatRaster layer, reflecting the amount of land area per planning unit}
 
-\item{countries}{An sf vector layer containing individual countries}
+\item{countries}{An sf vector layer containing individual countries, with names specified in a column named "code"}
 
-\item{bioregion}{An sf vector layer containing individual biogeographic regions}
+\item{bioregion}{An sf vector layer containing individual biogeographic regions, with names specified in a column named "code"}
 
 \item{threshold}{A double numeric, ranging between 0 and 1, defining the threshold for binarizing a proportional protected area raster}
 
@@ -37,8 +37,10 @@ Mean/Median Patch Size
 }
 \examples{
 \dontrun{
-pi.mean.patch.size(ll = "C:/.../solution_file.tif", puid, countries, bioregion,
-                    threshold = 0, project.name = "Example Project",
-                    version = "Version 1")
+pi.mean.patch.size(
+  ll = "C:/.../solution_file.tif", puid, countries, bioregion,
+  threshold = 0, project.name = "Example Project",
+  version = "Version 1"
+)
 }
 }

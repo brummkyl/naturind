@@ -1,9 +1,9 @@
 #' Irreplaceability
 #'
 #' @param ll A character vector containing file paths of raster files (e.g., spatial prioritization outputs) in '.tif' format.
-#' @param puid A SpatRaster layer with planning units
-#' @param countries An sf vector layer containing individual countries
-#' @param bioregion An sf vector layer containing individual biogeographic regions
+#' @param puid A SpatRaster layer, reflecting the amount of land area per planning unit
+#' @param countries An sf vector layer containing individual countries, with names specified in a column named "code"
+#' @param bioregion An sf vector layer containing individual biogeographic regions, with names specified in a column named "code"
 #' @param gamma.irr A SpatRaster layer containing gamma irreplaceability scores for planning units
 #' @param irr.quantile A double numeric, ranging between 0 and 1, specifying the gamma irreplaceability quantile to retain for metric calculations
 #' @param project.name A character vector specifying the name of your project
@@ -14,45 +14,29 @@
 #'
 #' @examples
 #' \dontrun{
-#' pi.irreplaceability(ll = "C:/.../solution_file.tif", puid, countries,
-#'                      bioregion, beta.irr, irr.quantile = 0.9, project.name = "Example Project",
-#'                      version = "Version 1")
-#'}
-
-pi.irreplaceability <- function(ll, puid, countries, bioregion, gamma.irr, irr.quantile, project.name, version){
-
+#' pi.irreplaceability(
+#'   ll = "C:/.../solution_file.tif", puid, countries,
+#'   bioregion, beta.irr, irr.quantile = 0.9, project.name = "Example Project",
+#'   version = "Version 1"
+#' )
+#' }
+pi.irreplaceability <- function(ll, puid, countries, bioregion, gamma.irr, irr.quantile, project.name, version) {
   beta.irr <- gamma.irr
 
   # Transform to ensure alignment of CRS
-  if(terra::crs(puid) != terra::crs(beta.irr)){
+  if (terra::crs(puid) != terra::crs(beta.irr)) {
     beta.irr <- beta.irr |> terra::project(puid)
   }
   assertthat::assert_that(crs(beta.irr) == crs(puid))
-  #
-  # if(terra::crs(puid) != terra::crs(all.pa)){
-  #   all.pa <- all.pa |> terra::project(puid)
-  # }
-  # assertthat::assert_that(crs(all.pa) == crs(puid))
-  #
-  # if(terra::crs(puid) != terra::crs(st.pa)){
-  #   st.pa <- st.pa |> terra::project(puid)
-  # }
-  # assertthat::assert_that(crs(st.pa) == crs(puid))
-  #
-  # if(terra::crs(puid) != terra::crs(n2k)){
-  #   n2k <- n2k |> terra::project(puid)
-  # }
-  # assertthat::assert_that(crs(n2k) == crs(puid))
 
   puid <- puid %>% mask(countries)
   puid_area <- puid
 
-  ee <- ll %>% rast() %>% extend(puid) %>% mask(countries)
+  ee <- ll %>%
+    rast() %>%
+    extend(puid) %>%
+    mask(countries)
   existing_pa_names <- c(basename(ll))
-
-  # # stack layers
-  # ee <- c(ee, all.pa, st.pa, n2k)
-  # existing_pa_names <- c(existing_pa_names, "Existing all PA", "Existing strict PA", "Existing N2K")
 
   # Make an area grid - ha
   puid <- puid %>% mask(ee[[1]])
@@ -77,20 +61,22 @@ pi.irreplaceability <- function(ll, puid, countries, bioregion, gamma.irr, irr.q
     ee <- ee %>% mask(ee[[1]])
   }
 
-  #ee <- ee %>% mask(puid)
-  #ee <- ee %>% mask(ee[[1]])
+  # ee <- ee %>% mask(puid)
 
-  beta.irr <- beta.irr %>% extend(puid) %>% crop(ee[[1]]) %>% mask(ee[[1]])
+  beta.irr <- beta.irr %>%
+    extend(puid) %>%
+    crop(ee[[1]]) %>%
+    mask(ee[[1]])
 
   # Resample to align resolution and origin of irreplaceability and puid_area rasters
   # Only resample if these two layers have different resolutions
-  if(!all.equal(res(beta.irr), res(puid_area))) {
-    beta.irr <- terra::resample(beta.irr,puid_area,method="bilinear")
+  if (!all.equal(res(beta.irr), res(puid_area))) {
+    beta.irr <- terra::resample(beta.irr, puid_area, method = "bilinear")
   }
   assertthat::assert_that(all.equal(res(beta.irr), res(puid_area)), msg = "Rasters differ in resolution")
 
   # extract any given quantile from the beta irreplaceability layer, and then convert this to a binary format
-  quant <- global(beta.irr, \(i) quantile(i, irr.quantile, na.rm=T))
+  quant <- global(beta.irr, \(i) quantile(i, irr.quantile, na.rm = T))
   beta.irr.binary <- ifel(beta.irr <= quant[[1]], NA, 1)
 
   co.dissolve <- sf::st_union(countries)
@@ -99,42 +85,31 @@ pi.irreplaceability <- function(ll, puid, countries, bioregion, gamma.irr, irr.q
   message(paste0("Number of planning units in puid file = ", sum(!is.na(values(puid)))))
   message(paste0("Number of planning units in irreplaceability file = ", sum(!is.na(values(puid)))))
 
-  #######################################################################################
-
-  # EXISTING PROTECTED AREAS
-
-  #######################################################################################
-
-  # bioregions and countries
+  # output containers
   beta.irr.europe.existing <- data.frame()
   beta.irr.bioregion.existing <- data.frame()
   beta.irr.countries.existing <- data.frame()
   pb <- progress::progress_bar$new(total = nlyr(ee))
 
   tic()
+  # loop through the solution rasters
   for (i in 1:nlyr(ee)) {
     pb$tick()
-    # loop through the solution rasters
     pa.sol <- ee[[i]]
     file.name <- existing_pa_names[[i]]
 
     # calculate the selected area
-    pa.sol.area <- pa.sol #* puid_area
+    pa.sol.area <- pa.sol
     # calculate the amount of irreplaceable area
     betaarea <- puid_area * beta.irr.binary
     # calculate the selected amount of irreplaceable area
-    pa.sol.beta <- pa.sol * beta.irr.binary #* puid_area
+    pa.sol.beta <- pa.sol * beta.irr.binary
 
     # Overall sum
-    ov.eur.area <- exactextractr::exact_extract(puid_area, co.dissolve, fun="sum")
-    ov.sol.area <- exactextractr::exact_extract(pa.sol.area, co.dissolve, fun="sum")
-    ov.beta.area <- exactextractr::exact_extract(betaarea, co.dissolve, fun="sum")
-    ov.beta.out <- exactextractr::exact_extract(pa.sol.beta, co.dissolve, fun="sum")
-
-    # ov.eur.area <- global(puid_area,"sum",na.rm=TRUE)[[1]]
-    # ov.sol.area <- global(pa.sol.area,"sum",na.rm=TRUE)[[1]]
-    # ov.beta.area <- global(betaarea,"sum",na.rm=TRUE)[[1]]
-    # ov.beta.out <- global(pa.sol.beta,"sum",na.rm=TRUE)[[1]]
+    ov.eur.area <- exactextractr::exact_extract(puid_area, co.dissolve, fun = "sum")
+    ov.sol.area <- exactextractr::exact_extract(pa.sol.area, co.dissolve, fun = "sum")
+    ov.beta.area <- exactextractr::exact_extract(betaarea, co.dissolve, fun = "sum")
+    ov.beta.out <- exactextractr::exact_extract(pa.sol.beta, co.dissolve, fun = "sum")
 
     # normalization
     # normalize by the total area of each region
@@ -144,38 +119,43 @@ pi.irreplaceability <- function(ll, puid, countries, bioregion, gamma.irr, irr.q
     # normalize by the amount of irreplaceable area within each region
     beta.out.norm3 <- (ov.beta.out / as.numeric(ov.beta.area))
 
-    o <- data.frame(project = paste0(project.name,"__",version),
-                    scenario = file.name,
-                    region = "Europe",
-                    variable = "Irreplaceability (gamma) selected in the solution",
-                    variable_variant = "Total area of region",
-                    unit = "%",
-                    value = beta.out.norm)
+    o <- data.frame(
+      project = paste0(project.name, "__", version),
+      scenario = file.name,
+      region = "Europe",
+      variable = "Irreplaceability (gamma) selected in the solution",
+      variable_variant = "Total area of region",
+      unit = "%",
+      value = beta.out.norm
+    )
     o2 <- o %>% mutate(
       variable_variant = "Selected area in region",
       unit = "%",
-      value = beta.out.norm2)
+      value = beta.out.norm2
+    )
     o3 <- o %>% mutate(
       variable_variant = "Irreplaceable (gamma) area in region",
       unit = "%",
-      value = beta.out.norm3)
+      value = beta.out.norm3
+    )
 
     beta.irr.europe.existing <- rbind(beta.irr.europe.existing, o, o2, o3)
 
     for (j in 1:nrow(bioregion)) {
       # loop through the bioregions
-      region1 <- bioregion[j,] %>% sf::st_make_valid()
+      region1 <- bioregion[j, ] %>% sf::st_make_valid()
 
       # denominators for normalization
       # calculate the total area of each region, in km2
-      region1.area <- exactextractr::exact_extract(puid_area, region1, fun="sum")
+      region1.area <- exactextractr::exact_extract(puid_area, region1, fun = "sum")
       # calculate the selected area within each region
-      area.sel <- exactextractr::exact_extract(pa.sol.area, region1, fun="sum")
+      area.sel <- exactextractr::exact_extract(pa.sol.area, region1, fun = "sum")
       # calculate the amount of irreplaceable area within each region
-      betaarea.sel <- exactextractr::exact_extract(betaarea, region1, fun="sum")
+      betaarea.sel <- exactextractr::exact_extract(betaarea, region1, fun = "sum")
       # numerator for normalization
       # calculate the selected amount of irreplaceable area within each region
-      beta.out <- exactextractr::exact_extract(pa.sol.beta, region1, fun="sum")
+      beta.out <- exactextractr::exact_extract(pa.sol.beta, region1, fun = "sum")
+
       # normalization
       # normalize by the total area of each region
       beta.out.norm <- (beta.out / as.numeric(region1.area))
@@ -184,39 +164,44 @@ pi.irreplaceability <- function(ll, puid, countries, bioregion, gamma.irr, irr.q
       # normalize by the amount of irreplaceable area within each region
       beta.out.norm3 <- (beta.out / as.numeric(betaarea.sel))
 
-      o <- data.frame(project = paste0(project.name,"__",version),
-                      scenario = file.name,
-                      region = paste0(as.character(bioregion[[j,"code"]])),
-                      variable = "Irreplaceability (gamma) selected in the solution",
-                      variable_variant = "Total area of region",
-                      unit = "%",
-                      value = beta.out.norm)
+      o <- data.frame(
+        project = paste0(project.name, "__", version),
+        scenario = file.name,
+        region = paste0(as.character(bioregion[[j, "code"]])),
+        variable = "Irreplaceability (gamma) selected in the solution",
+        variable_variant = "Total area of region",
+        unit = "%",
+        value = beta.out.norm
+      )
       o2 <- o %>% mutate(
         variable_variant = "Selected area in region",
         unit = "%",
-        value = beta.out.norm2)
+        value = beta.out.norm2
+      )
       o3 <- o %>% mutate(
         variable_variant = "Irreplaceable (gamma) area in region",
         unit = "%",
-        value = beta.out.norm3)
+        value = beta.out.norm3
+      )
 
       beta.irr.bioregion.existing <- rbind(beta.irr.bioregion.existing, o, o2, o3)
     }
 
     for (j in 1:nrow(countries)) {
       # loop through the countries
-      region1 <- countries[j,] %>% sf::st_make_valid()
+      region1 <- countries[j, ] %>% sf::st_make_valid()
 
       # denominators for normalization
       # calculate the total area of each region, in km2
-      region1.area <- exactextractr::exact_extract(puid_area, region1, fun="sum")
+      region1.area <- exactextractr::exact_extract(puid_area, region1, fun = "sum")
       # calculate the selected area within each region
-      area.sel <- exactextractr::exact_extract(pa.sol.area, region1, fun="sum")
+      area.sel <- exactextractr::exact_extract(pa.sol.area, region1, fun = "sum")
       # calculate the amount of irreplaceable area within each region
-      betaarea.sel <- exactextractr::exact_extract(betaarea, region1, fun="sum")
+      betaarea.sel <- exactextractr::exact_extract(betaarea, region1, fun = "sum")
       # numerator for normalization
       # calculate the selected amount of irreplaceable area within each region
-      beta.out <- exactextractr::exact_extract(pa.sol.beta, region1, fun="sum")
+      beta.out <- exactextractr::exact_extract(pa.sol.beta, region1, fun = "sum")
+
       # normalization
       # normalize by the total area of each region
       beta.out.norm <- (beta.out / as.numeric(region1.area))
@@ -225,21 +210,25 @@ pi.irreplaceability <- function(ll, puid, countries, bioregion, gamma.irr, irr.q
       # normalize by the amount of irreplaceable area within each region
       beta.out.norm3 <- (beta.out / as.numeric(betaarea.sel))
 
-      o <- data.frame(project = paste0(project.name,"__",version),
-                      scenario = file.name,
-                      region = paste0(as.character(countries[[j,"NAME_0"]])),
-                      variable = "Irreplaceability (gamma) selected in the solution",
-                      variable_variant = "Total area of region",
-                      unit = "%",
-                      value = beta.out.norm)
+      o <- data.frame(
+        project = paste0(project.name, "__", version),
+        scenario = file.name,
+        region = paste0(as.character(countries[[j, "code"]])),
+        variable = "Irreplaceability (gamma) selected in the solution",
+        variable_variant = "Total area of region",
+        unit = "%",
+        value = beta.out.norm
+      )
       o2 <- o %>% mutate(
         variable_variant = "Selected area in region",
         unit = "%",
-        value = beta.out.norm2)
+        value = beta.out.norm2
+      )
       o3 <- o %>% mutate(
         variable_variant = "Irreplaceable (gamma) area in region",
         unit = "%",
-        value = beta.out.norm3)
+        value = beta.out.norm3
+      )
 
       beta.irr.countries.existing <- rbind(beta.irr.countries.existing, o, o2, o3)
     }
@@ -254,12 +243,7 @@ pi.irreplaceability <- function(ll, puid, countries, bioregion, gamma.irr, irr.q
   outdir <- paste0("performance_outputs/", version)
   dir.create(outdir, showWarnings = FALSE)
 
-  #if(consensus.sol == 1){
-  #  ofname <- paste0(outdir.consensus, "/", project.name,"__",version, "__indicator_irreplaceability.csv")
-  #} else if (consensus.sol == 0){
-    ofname <- paste0(outdir, "/", project.name,"__",version, "__indicator_irreplaceability.csv")
-  #}
-
+  ofname <- paste0(outdir, "/", project.name, "__", version, "__indicator_irreplaceability.csv")
   write.csv(out.beta.irr.final, ofname, row.names = FALSE)
 
   message("Irreplaceability calculation done. Don't forget to create/update variable definitions")
