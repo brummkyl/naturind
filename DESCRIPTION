@@ -5,7 +5,7 @@ Authors@R:
     person("Kyle J.", "Brumm", , "kbrumm@clemson.edu", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0002-6088-5627"))
 Description: Calculates a set of performance indicators for evaluating protected areas and expansion priorities at various spatial extents (e.g., across Europe and within individual biogeographic regions and countries).
-License: MIT + file LICENSE
+License: GPL (>= 3)
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 Config/roxygen2/version: 8.1.1
@@ -29,5 +29,5 @@ Imports:
     tools
 URL: https://github.com/brummkyl/naturind
 BugReports: https://github.com/brummkyl/naturind/issues
-Remotes:  
+Remotes: 
     connectscape/Makurhini
