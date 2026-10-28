@@ -8,6 +8,7 @@
 [![R-CMD-check](https://github.com/brummkyl/naturind/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/brummkyl/naturind/actions/workflows/R-CMD-check.yaml)
 [![License:
 MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://choosealicense.com/licenses/mit/)
+![Version 1.0.0](https://img.shields.io/badge/version-1.0.0-white)
 <!-- badges: end -->
 
 The goal of naturind is to support the calculation of performance
