@@ -1,11 +1,15 @@
-library(devtools)
-library(dplyr)
-library(terra)
-library(sf)
-library(raster)
-library(exactextractr)
-library(tictoc)
-library(gdistance)
-library(assertthat)
-library(Matrix)
-library(progress)
+if (interactive()) {
+
+  if (requireNamespace("devtools", quietly = TRUE)) library(devtools)
+
+  library(dplyr)
+  library(Matrix)
+  library(assertthat)
+  library(tictoc)
+  library(progress)
+  library(sf)
+  library(terra)
+  library(raster)
+  library(exactextractr)
+  library(gdistance)
+}
