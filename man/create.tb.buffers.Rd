@@ -27,7 +27,7 @@ create.tb.buffers(
 \item{outdir}{If 'save = TRUE', an absolute file path of where to save the resulting layer. Note: 'outdir' must end with a forward slash, e.g., ("C:/.../folder/")}
 }
 \value{
-A .gpkg layer containing a single feature, representing the transboundary area between regions
+A .gpkg layer (sf object) containing a single feature, representing the transboundary area between regions
 }
 \description{
 Transboundary buffer file creation

@@ -7,7 +7,7 @@
 #' @param save A logical of whether the resulting layer should be saved
 #' @param outdir If 'save = TRUE', an absolute file path of where to save the resulting layer. Note: 'outdir' must end with a forward slash, e.g., ("C:/.../folder/")
 #'
-#' @returns A .gpkg layer containing a single feature, representing the transboundary area between regions
+#' @returns A .gpkg layer (sf object) containing a single feature, representing the transboundary area between regions
 #' @export
 #'
 #' @examples
