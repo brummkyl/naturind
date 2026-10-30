@@ -1,11 +1,9 @@
-# ll.v <- list(hist, curr)
-# names(ll.v) <- c("2014", "2024")
-
 #' Mean/Median Patch Size (Vector)
 #'
-#' @param ll.v A named list of SpatVector layers representing protected areas
+#' @param ll.v A named list of sf vector layers representing contiguous, non-overlapping protected area polygons. Requires a column named 'area_km2', reflecting the area of each unique patch. For help with preprocessing, see the 'create.flat.layer' function.
 #' @param countries An sf vector layer containing individual countries, with names specified in a column named "code"
 #' @param bioregion An sf vector layer containing individual biogeographic regions, with names specified in a column named "code"
+#' @param min.area An integer, specifying the minimum patch area (in square km) to retain for the calculations. This parameter is useful for removing erroneous patch fragments that may have been generated during geoprocessing. Defaults to 5e-6, which retains patches with an area larger than 5 square meters.
 #' @param project.name A character vector specifying the name of your project
 #' @param version A character vector specifying the version (e.g., date) of your workflow
 #'
@@ -14,12 +12,15 @@
 #'
 #' @examples
 #' \dontrun{
-#' pi.mean.patch.size.vector(ll.v, countries, bioregion,
+#' pi.mean.patch.size.vector(ll.v, countries, bioregion, min.area = 5e-6,
 #'   project.name = "Example Project", version = "Version 1"
 #' )
 #' }
-pi.mean.patch.size.vector <- function(ll.v, countries, bioregion, project.name, version) {
+pi.mean.patch.size.vector <- function(ll.v, countries, bioregion, min.area = 5e-6, project.name, version) {
   # union countries to represent continental extent
+  countries <- countries %>% sf::st_make_valid()
+  bioregion <- bioregion %>% sf::st_make_valid()
+
   co.dissolve <- sf::st_union(countries)
 
   # output containers
@@ -31,20 +32,16 @@ pi.mean.patch.size.vector <- function(ll.v, countries, bioregion, project.name, 
   for (i in names(ll.v)) {
     message("Processing file: ", i)
 
-    pa.sol <- ll.v[[i]]
+    pa.sol.crop <- ll.v[[i]]
     file.name <- names(ll.v[i])
 
-    pa.sol.crop <- pa.sol %>%
-      sf::st_make_valid() %>%
-      sf::st_union() %>%
-      sf::st_cast("POLYGON") %>%
-      sf::st_sf(geometry = .) %>%
-      sf::st_intersection(co.dissolve)
+    # geometry-only copy for the intersections
+    pa.geom <- sf::st_sf(geometry = sf::st_geometry(pa.sol.crop))
 
-    pa.sol.crop$area_km2 <- sf::st_area(pa.sol.crop) / 1e6
+    areas <- pa.sol.crop$area_km2[pa.sol.crop$area_km2 > min.area]
 
-    mean.patch.size <- as.numeric(mean(pa.sol.crop$area_km2, na.rm = T))
-    median.patch.size <- as.numeric(median(pa.sol.crop$area_km2, na.rm = T))
+    mean.patch.size <- as.numeric(mean(areas, na.rm = T))
+    median.patch.size <- as.numeric(median(areas, na.rm = T))
 
     o <- data.frame(
       project = paste0(project.name, "__", version),
@@ -75,16 +72,26 @@ pi.mean.patch.size.vector <- function(ll.v, countries, bioregion, project.name, 
       # loop through the bioregions
       pb_bioregion$tick(tokens = list(bioregion = bioregion[[j, "code"]]))
 
-      region1 <- bioregion[j, ] %>% sf::st_make_valid()
+      region1 <- bioregion[j, ]
 
-      bi.pa.sol.crop <- pa.sol.crop %>%
-        sf::st_intersection(region1)
+      pre.filt <- sf::st_filter(pa.geom, region1)
 
-      if (nrow(bi.pa.sol.crop) > 0) {
-        bi.pa.sol.crop$area_km2 <- sf::st_area(bi.pa.sol.crop) / 1e6
-        mean.patch.size <- as.numeric(mean(bi.pa.sol.crop$area_km2, na.rm = T))
-        median.patch.size <- as.numeric(median(bi.pa.sol.crop$area_km2, na.rm = T))
-      } else if (nrow(bi.pa.sol.crop) == 0) {
+      if (nrow(pre.filt) > 0) {
+        bi.pa.sol.crop <- pre.filt %>%
+          sf::st_intersection(region1) %>%
+          sf::st_collection_extract("POLYGON") %>% # drop lines/points from touching borders
+          sf::st_cast("POLYGON") # one row per polygon
+
+        areas <- as.numeric(sf::st_area(bi.pa.sol.crop)) / 1e6
+        areas <- areas[areas > min.area]
+      } else {
+        areas <- numeric(0)
+      }
+
+      if (length(areas) > 0) {
+        mean.patch.size <- mean(areas)
+        median.patch.size <- median(areas)
+      } else {
         mean.patch.size <- NA
         median.patch.size <- NA
       }
@@ -120,16 +127,26 @@ pi.mean.patch.size.vector <- function(ll.v, countries, bioregion, project.name, 
       # loop through the countries
       pb_countries$tick(tokens = list(country = countries[[j, "code"]]))
 
-      region1 <- countries[j, ] %>% sf::st_make_valid()
+      region1 <- countries[j, ]
 
-      co.pa.sol.crop <- pa.sol.crop %>%
-        sf::st_intersection(region1)
+      pre.filt <- sf::st_filter(pa.geom, region1)
 
-      if (nrow(co.pa.sol.crop) > 0) {
-        co.pa.sol.crop$area_km2 <- sf::st_area(co.pa.sol.crop) / 1e6
-        mean.patch.size <- as.numeric(mean(co.pa.sol.crop$area_km2, na.rm = T))
-        median.patch.size <- as.numeric(median(co.pa.sol.crop$area_km2, na.rm = T))
-      } else if (nrow(co.pa.sol.crop) == 0) {
+      if (nrow(pre.filt) > 0) {
+        co.pa.sol.crop <- pre.filt %>%
+          sf::st_intersection(region1) %>%
+          sf::st_collection_extract("POLYGON") %>% # drop lines/points from touching borders
+          sf::st_cast("POLYGON") # one row per polygon
+
+        areas <- as.numeric(sf::st_area(co.pa.sol.crop)) / 1e6
+        areas <- areas[areas > min.area]
+      } else {
+        areas <- numeric(0)
+      }
+
+      if (length(areas) > 0) {
+        mean.patch.size <- mean(areas)
+        median.patch.size <- median(areas)
+      } else {
         mean.patch.size <- NA
         median.patch.size <- NA
       }
