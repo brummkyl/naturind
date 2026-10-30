@@ -4,14 +4,23 @@
 \alias{pi.mean.patch.size.vector}
 \title{Mean/Median Patch Size (Vector)}
 \usage{
-pi.mean.patch.size.vector(ll.v, countries, bioregion, project.name, version)
+pi.mean.patch.size.vector(
+  ll.v,
+  countries,
+  bioregion,
+  min.area = 5e-06,
+  project.name,
+  version
+)
 }
 \arguments{
-\item{ll.v}{A named list of SpatVector layers representing protected areas}
+\item{ll.v}{A named list of sf vector layers representing contiguous, non-overlapping protected area polygons. Requires a column named 'area_km2', reflecting the area of each unique patch. For help with preprocessing, see the 'create.flat.layer' function.}
 
 \item{countries}{An sf vector layer containing individual countries, with names specified in a column named "code"}
 
 \item{bioregion}{An sf vector layer containing individual biogeographic regions, with names specified in a column named "code"}
+
+\item{min.area}{An integer, specifying the minimum patch area (in square km) to retain for the calculations. This parameter is useful for removing erroneous patch fragments that may have been generated during geoprocessing. Defaults to 5e-6, which retains patches with an area larger than 5 square meters.}
 
 \item{project.name}{A character vector specifying the name of your project}
 
@@ -25,7 +34,7 @@ Mean/Median Patch Size (Vector)
 }
 \examples{
 \dontrun{
-pi.mean.patch.size.vector(ll.v, countries, bioregion,
+pi.mean.patch.size.vector(ll.v, countries, bioregion, min.area = 5e-6,
   project.name = "Example Project", version = "Version 1"
 )
 }
