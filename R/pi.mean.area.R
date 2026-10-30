@@ -34,6 +34,7 @@
 #' @importFrom sf st_sf
 #' @importFrom sf st_sfc
 #' @importFrom sf st_write
+#' @importFrom sf st_make_grid
 #' @importFrom stats quantile
 #' @importFrom terra values
 #' @importFrom terra rast
